@@ -146,7 +146,6 @@ export function MarketChart() {
           <span className="eyebrow">
             <ChartNoAxesCombined size={14} /> Live market matrix
           </span>
-          <h2>BTC, ETH, SOL, MNT relative performance</h2>
         </div>
       </div>
 
