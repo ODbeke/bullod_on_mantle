@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Area, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ChartNoAxesCombined } from "lucide-react";
 import { ChartLegend } from "./ChartLegend";
+import { SparklineCard } from "./SparklineCard";
 
 const COLORS: Record<string, string> = {
   BTC: "#f59e0b",
@@ -149,37 +150,53 @@ export function MarketChart() {
         </div>
       </div>
 
-      <div className="chart-wrap">
-        {/* Floating legend — always synced to latestPoint */}
-        <ChartLegend assets={COLORS} latestPoint={latestPoint} />
+      <div className="chart-dashboard">
+        {/* Main chart — 3/4 width */}
+        <div className="chart-main">
+          <div className="chart-wrap">
+            <ChartLegend assets={COLORS} latestPoint={latestPoint} />
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={data} margin={{ top: 40, right: 24, left: -16, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="chartGlow" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="#38bdf8" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid stroke="rgba(148, 163, 184, 0.08)" vertical={false} />
+                <XAxis dataKey="time" stroke="#94a3b8" tickLine={false} axisLine={false} minTickGap={30} style={{ fontSize: "0.75rem" }} />
+                <YAxis stroke="#94a3b8" tickLine={false} axisLine={false} domain={yDomain} style={{ fontSize: "0.75rem" }} />
+                <Tooltip content={<ChartTooltip />} />
+                <Area type="monotone" dataKey="BTC" fill="url(#chartGlow)" stroke="transparent" isAnimationActive={false} />
+                {SYMBOLS.map((sym) => (
+                  <Line
+                    key={sym}
+                    type="monotone"
+                    dataKey={sym}
+                    stroke={COLORS[sym]}
+                    strokeWidth={2.2}
+                    dot={false}
+                    activeDot={{ r: 4 }}
+                    isAnimationActive={false}
+                  />
+                ))}
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
 
-        <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={data} margin={{ top: 40, right: 24, left: -16, bottom: 0 }}>
-            <defs>
-              <linearGradient id="chartGlow" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.15} />
-                <stop offset="95%" stopColor="#38bdf8" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid stroke="rgba(148, 163, 184, 0.08)" vertical={false} />
-            <XAxis dataKey="time" stroke="#94a3b8" tickLine={false} axisLine={false} minTickGap={30} style={{ fontSize: "0.75rem" }} />
-            <YAxis stroke="#94a3b8" tickLine={false} axisLine={false} domain={yDomain} style={{ fontSize: "0.75rem" }} />
-            <Tooltip content={<ChartTooltip />} />
-            <Area type="monotone" dataKey="BTC" fill="url(#chartGlow)" stroke="transparent" isAnimationActive={false} />
-            {SYMBOLS.map((sym) => (
-              <Line
-                key={sym}
-                type="monotone"
-                dataKey={sym}
-                stroke={COLORS[sym]}
-                strokeWidth={2.2}
-                dot={false}
-                activeDot={{ r: 4 }}
-                isAnimationActive={false}
-              />
-            ))}
-          </ComposedChart>
-        </ResponsiveContainer>
+        {/* Sidebar — 1/4 width — sparkline cards */}
+        <aside className="chart-sidebar">
+          {SYMBOLS.map((sym) => (
+            <SparklineCard
+              key={sym}
+              symbol={sym}
+              color={COLORS[sym]}
+              data={data}
+              latestRaw={latestPoint[`raw${sym}` as keyof DataPoint] as number}
+            />
+          ))}
+        </aside>
       </div>
     </section>
   );
