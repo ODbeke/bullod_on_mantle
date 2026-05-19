@@ -1,0 +1,13 @@
+aiohttp==3.13.2
+asyncpg==0.30.0
+eth-account==0.13.7
+fastapi==0.121.0
+httpx==0.28.1
+pandas==2.3.3
+psycopg[binary]==3.2.13
+pydantic==2.12.3
+pydantic-settings==2.11.0
+python-telegram-bot==22.5
+sqlalchemy==2.0.44
+uvicorn==0.38.0
+web3==7.14.0
