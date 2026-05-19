@@ -255,14 +255,35 @@ h3 {
   box-shadow: 0 0 18px var(--token-color);
 }
 
-/* ── Chart legend (floating top-right inside chart) ───── */
+/* ── Chart two-column dashboard layout ──────────────── */
+
+.chart-dashboard {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  gap: 14px;
+  margin-top: 18px;
+  min-height: 380px;
+}
+
+.chart-main {
+  min-width: 0;
+}
 
 .chart-wrap {
   position: relative;
   width: 100%;
-  height: 360px;
-  margin-top: 18px;
+  height: 380px;
 }
+
+.chart-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-left: 1px solid rgba(148, 163, 184, 0.1);
+  padding-left: 14px;
+}
+
+/* ── Floating legend (top-right inside chart) ─────────── */
 
 .chart-legend {
   position: absolute;
@@ -311,6 +332,77 @@ h3 {
   font-variant-numeric: tabular-nums;
   min-width: 52px;
   text-align: right;
+}
+
+/* ── Sparkline cards ─────────────────────────────────── */
+
+.sparkline-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.55), rgba(8, 13, 24, 0.45));
+  transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+  cursor: default;
+}
+
+.sparkline-card:hover {
+  border-color: var(--spark-color, rgba(148, 163, 184, 0.35));
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25), 0 0 12px color-mix(in srgb, var(--spark-color) 25%, transparent);
+  transform: translateY(-1px);
+}
+
+.sparkline-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sparkline-card-identity {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sparkline-card-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--spark-color);
+  box-shadow: 0 0 8px var(--spark-color);
+  flex-shrink: 0;
+}
+
+.sparkline-card-symbol {
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #e2e8f0;
+}
+
+.sparkline-card-change {
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.sparkline-card-price {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #f1f5f9;
+  font-variant-numeric: tabular-nums;
+  margin-top: 4px;
+  letter-spacing: -0.02em;
+}
+
+.sparkline-card-chart {
+  width: 100%;
+  height: 36px;
+  margin-top: 6px;
 }
 
 /* ── Chart tooltip ───────────────────────────────────── */
@@ -638,6 +730,10 @@ h3 {
   .bot-grid {
     grid-template-columns: repeat(3, minmax(210px, 1fr));
   }
+
+  .chart-dashboard {
+    grid-template-columns: 2.5fr 1fr;
+  }
 }
 
 @media (max-width: 820px) {
@@ -664,6 +760,25 @@ h3 {
   .trade-row,
   .trade-row.compact {
     grid-template-columns: 1fr;
+  }
+
+  .chart-dashboard {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-sidebar {
+    flex-direction: row;
+    overflow-x: auto;
+    border-left: none;
+    border-top: 1px solid rgba(148, 163, 184, 0.1);
+    padding-left: 0;
+    padding-top: 12px;
+    gap: 10px;
+  }
+
+  .sparkline-card {
+    min-width: 160px;
+    flex: 0 0 auto;
   }
 
   .chart-wrap {
