@@ -135,7 +135,7 @@ h3 {
   border: 0;
   border-radius: 8px;
   color: #eaf6ff;
-  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
 }
 
 .primary-button {
@@ -147,6 +147,7 @@ h3 {
 
 .ghost-button,
 .icon-button {
+  padding: 0 16px;
   border: 1px solid rgba(148, 163, 184, 0.22);
   background: rgba(15, 23, 42, 0.62);
 }
@@ -154,7 +155,18 @@ h3 {
 .primary-button:hover,
 .ghost-button:hover,
 .icon-button:hover {
-  transform: translateY(-1px);
+  transform: translateY(-1.5px);
+}
+
+.ghost-button:hover {
+  background: rgba(20, 30, 55, 0.85);
+  border-color: rgba(56, 189, 248, 0.6);
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.25);
+}
+
+.primary-button:hover {
+  filter: brightness(1.12);
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.45);
 }
 
 .overview {

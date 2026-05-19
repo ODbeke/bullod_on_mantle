@@ -1,4 +1,4 @@
-import { Activity, Coins, LogOut, Wallet } from "lucide-react";
+import { Activity, LogOut, Wallet, Bell, Fuel } from "lucide-react";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 
 type Props = {
@@ -10,6 +10,14 @@ export function WalletBar({ onMint }: Props) {
   const { connectors, connect, isPending } = useConnect();
   const { disconnect } = useDisconnect();
 
+  const handleActivateTelegram = () => {
+    if (address) {
+      navigator.clipboard.writeText(`/link ${address}`);
+      alert("Link command copied! Paste it to the Telegram bot to receive alerts.");
+    }
+    window.open("https://t.me/OD_track_bot", "_blank");
+  };
+
   return (
     <div className="wallet-bar">
       <div>
@@ -17,9 +25,15 @@ export function WalletBar({ onMint }: Props) {
         <h1>OD Bot Hedge Dashboard</h1>
       </div>
       <div className="wallet-actions">
+        {isConnected && (
+          <button className="ghost-button" type="button" onClick={handleActivateTelegram}>
+            <Bell size={18} />
+            Telegram Alerts
+          </button>
+        )}
         <button className="ghost-button" type="button" onClick={onMint} disabled={!isConnected}>
-          <Coins size={18} />
-          Mint mUSDC
+          <Fuel size={18} />
+          Faucet
         </button>
         {isConnected ? (
           <button className="primary-button" type="button" onClick={() => disconnect()}>
