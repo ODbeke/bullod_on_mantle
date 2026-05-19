@@ -41,6 +41,27 @@ export function Dashboard() {
       setStatus("Connect a wallet before minting mUSDC.");
       return;
     }
+
+    const localStorageKey = `faucet_cooldown_${address.toLowerCase()}`;
+    const lastClaim = localStorage.getItem(localStorageKey);
+    const cooldownPeriod = 24 * 60 * 60 * 1000; // 24 hours in ms
+
+    if (lastClaim) {
+      const timePassed = Date.now() - parseInt(lastClaim, 10);
+      if (timePassed < cooldownPeriod) {
+        const timeLeft = cooldownPeriod - timePassed;
+        const hours = Math.floor(timeLeft / (60 * 60 * 1000));
+        const minutes = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
+        const seconds = Math.floor((timeLeft % (60 * 1000)) / 1000);
+        
+        const countdownStr = `${hours}h ${minutes}m ${seconds}s`;
+        const errorMsg = `Faucet cooldown active. Please try again in ${countdownStr}.`;
+        setStatus(errorMsg);
+        alert(`⏳ Faucet Cooldown Active\n\nYou have already claimed tokens recently. Please wait ${countdownStr} before claiming again.`);
+        return;
+      }
+    }
+
     if (!contractsConfigured()) {
       setStatus("Deploy contracts and add VITE_MOCK_USDC_ADDRESS / VITE_TRADING_VAULT_ADDRESS before minting.");
       return;
@@ -48,6 +69,7 @@ export function Dashboard() {
     setStatus("Minting mock USDC from the faucet...");
     try {
       await mintMockUsdc(address);
+      localStorage.setItem(localStorageKey, Date.now().toString());
       setStatus("Minted 10,000 mUSDC to your wallet.");
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Mint transaction failed.");
