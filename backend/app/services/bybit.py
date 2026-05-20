@@ -33,7 +33,8 @@ class CryptoCompareStream:
     async def _fetch_candles(self, session: aiohttp.ClientSession, symbol: str) -> list[Candle]:
         """Fetch the latest 60 one-minute candles for a symbol."""
         contract_symbol = SYMBOL_MAP[symbol]
-        params = {"fsym": symbol, "tsym": "USD", "limit": 60}
+        api_symbol = "MANTLE" if symbol == "MNT" else symbol
+        params = {"fsym": api_symbol, "tsym": "USD", "limit": 60}
         try:
             async with session.get(self._base_url, params=params) as resp:
                 if resp.status != 200:

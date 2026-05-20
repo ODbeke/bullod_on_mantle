@@ -70,3 +70,63 @@ def pivot_points(high: float, low: float, close: float) -> tuple[float, float, f
     support = 2 * pivot - high
     resistance = 2 * pivot - low
     return support, pivot, resistance
+
+
+def stochastic(highs: Sequence[float], lows: Sequence[float], closes: Sequence[float], period: int = 14, k_smooth: int = 3) -> tuple[float, float]:
+    """Calculate Stochastic Oscillator %K and %D."""
+    if len(closes) < period:
+        return 50.0, 50.0
+    
+    k_values = []
+    # Calculate %K for enough recent points to smooth it
+    for i in range(len(closes) - k_smooth, len(closes)):
+        window_highs = highs[i - period + 1 : i + 1]
+        window_lows = lows[i - period + 1 : i + 1]
+        highest_high = max(window_highs) if window_highs else 1.0
+        lowest_low = min(window_lows) if window_lows else 0.0
+        denom = highest_high - lowest_low
+        if denom == 0:
+            k = 50.0
+        else:
+            k = ((closes[i] - lowest_low) / denom) * 100
+        k_values.append(k)
+        
+    pct_k = k_values[-1]
+    pct_d = sum(k_values) / len(k_values)
+    return pct_k, pct_d
+
+
+def cci(highs: Sequence[float], lows: Sequence[float], closes: Sequence[float], period: int = 20) -> float:
+    """Calculate Commodity Channel Index."""
+    if len(closes) < period:
+        return 0.0
+    tp = [(h + l + c) / 3 for h, l, c in zip(highs[-period:], lows[-period:], closes[-period:])]
+    sma_tp = sum(tp) / period
+    mean_dev = sum(abs(t - sma_tp) for t in tp) / period
+    if mean_dev == 0:
+        return 0.0
+    return (tp[-1] - sma_tp) / (0.015 * mean_dev)
+
+
+def williams_r(highs: Sequence[float], lows: Sequence[float], closes: Sequence[float], period: int = 14) -> float:
+    """Calculate Williams %R."""
+    if len(closes) < period:
+        return -50.0
+    window_highs = highs[-period:]
+    window_lows = lows[-period:]
+    highest_high = max(window_highs) if window_highs else 1.0
+    lowest_low = min(window_lows) if window_lows else 0.0
+    denom = highest_high - lowest_low
+    if denom == 0:
+        return -50.0
+    return ((highest_high - closes[-1]) / denom) * -100
+
+
+def roc(values: Sequence[float], period: int = 12) -> float:
+    """Calculate Rate of Change."""
+    if len(values) <= period:
+        return 0.0
+    prev_val = values[-period - 1]
+    if prev_val == 0:
+        return 0.0
+    return ((values[-1] - prev_val) / prev_val) * 100

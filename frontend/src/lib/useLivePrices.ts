@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 
 // Maps on-chain symbols (e.g., "BTC/USDT") to CryptoCompare symbols
 function toCryptoCompareSymbol(symbol: string): string {
-  return symbol.replace("/USDT", "").replace("USDT", "");
+  const base = symbol.replace("/USDT", "").replace("USDT", "");
+  return base === "MNT" ? "MANTLE" : base;
 }
 
 const POLL_INTERVAL = 4_000; // 4 seconds
