@@ -135,6 +135,19 @@ class BotEngine:
         if key in self.positions:
             return  # already has an open position for this bot+symbol
 
+        # Bot-level lock: if this user already has ANY open position on this bot,
+        # block new trades until every existing trade for this bot closes.
+        user_bot_positions = [
+            k for k in self.positions
+            if k[0] == user.lower() and k[1] == signal.bot_id
+        ]
+        if user_bot_positions:
+            logger.debug(
+                "Skipping %s for %s on bot %d — user has %d open position(s), waiting for cycle to complete",
+                signal.symbol, user[:10], signal.bot_id, len(user_bot_positions),
+            )
+            return
+
         allocation = await self.chain.bot_allocation(user, signal.bot_id)
         collateral = max(25.0, allocation / 10**6 * signal.collateral_fraction)
         if allocation == 0 or collateral * 10**6 > allocation:
