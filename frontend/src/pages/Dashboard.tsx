@@ -24,7 +24,8 @@ export function Dashboard() {
       setStatus("Approving, depositing, and allocating mUSDC on Mantle Sepolia...");
       try {
         await depositAndAllocate(address, botId, amount);
-        setStatus(`Allocated ${amount.toLocaleString()} mUSDC to Bot ${botId} on-chain.`);
+        const botName = bots.find((b) => b.id === botId)?.name || `Bot ${botId}`;
+        setStatus(`Allocated ${amount.toLocaleString()} mUSDC to ${botName} on-chain.`);
         await refresh(); // re-fetch live data after on-chain action
       } catch (error) {
         setStatus(error instanceof Error ? error.message : "On-chain allocation failed.");
@@ -40,10 +41,11 @@ export function Dashboard() {
   async function handleDeallocate(botId: number, amount: number) {
     if (amount <= 0) return;
     if (address && contractsConfigured()) {
-      setStatus(`Withdrawing ${amount} mUSDC from Bot ${botId}...`);
+      const botName = bots.find((b) => b.id === botId)?.name || `Bot ${botId}`;
+      setStatus(`Withdrawing ${amount} mUSDC from ${botName}...`);
       try {
         await deallocateBot(address, botId, amount);
-        setStatus(`Successfully withdrew ${amount.toLocaleString()} mUSDC from Bot ${botId}.`);
+        setStatus(`Successfully withdrew ${amount.toLocaleString()} mUSDC from ${botName}.`);
         await refresh();
       } catch (error) {
         setStatus(error instanceof Error ? error.message : "On-chain withdrawal failed.");
