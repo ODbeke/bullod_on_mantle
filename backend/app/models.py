@@ -29,7 +29,7 @@ class Signal:
     reason: str
     price: float
     timestamp: int
-    collateral_fraction: float = 0.1
+    collateral_fraction: float = 0.25
 
 
 @dataclass
