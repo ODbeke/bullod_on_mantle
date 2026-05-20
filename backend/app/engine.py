@@ -4,7 +4,7 @@ from time import time
 
 from app.config import get_settings
 from app.models import Position, Signal, Side
-from app.services.bybit import BybitMarketStream
+from app.services.bybit import CryptoCompareStream
 from app.services.chain import ChainRecorder, BOT_IDS
 from app.services.repository import TradeRepository
 from app.services.telegram import TelegramNotifier
@@ -29,7 +29,7 @@ USER_DISCOVERY_INTERVAL = 120
 class BotEngine:
     def __init__(self) -> None:
         self.settings = get_settings()
-        self.market = BybitMarketStream()
+        self.market = CryptoCompareStream()
         self.chain = ChainRecorder()
         self.notifier = TelegramNotifier(self.settings.telegram_bot_token)
         self.repository = TradeRepository()
