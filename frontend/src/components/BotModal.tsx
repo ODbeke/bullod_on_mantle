@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { BarChart3, CircleDollarSign, Play, TrendingDown, TrendingUp, X, Inbox, Zap } from "lucide-react";
 import type { Bot } from "../lib/bots";
 import type { OnChainTrade } from "../lib/contracts";
+import { useLivePrices, calcUnrealizedPnl } from "../lib/useLivePrices";
 
 type Props = {
   bot: Bot | null;
@@ -27,6 +28,10 @@ export function BotModal({ bot, active, botAllocation, userTrades, onClose, onAc
   const liveShort = liveTrades.filter((t) => !t.isLong);
   const closedLong = history.filter((t) => t.isLong);
   const closedShort = history.filter((t) => !t.isLong);
+
+  // Get unique symbols from live trades for live price polling
+  const liveSymbols = useMemo(() => [...new Set(liveTrades.map((t) => t.symbol))], [liveTrades]);
+  const livePrices = useLivePrices(liveSymbols);
 
   return (
     <AnimatePresence>
@@ -83,8 +88,8 @@ export function BotModal({ bot, active, botAllocation, userTrades, onClose, onAc
                 />
               ) : (
                 <div className="trade-book">
-                  <TradeGroup title="Live long trades" tone="long" trades={liveLong} emptyLabel={`${bot.name} has no live long trades.`} />
-                  <TradeGroup title="Live short trades" tone="short" trades={liveShort} emptyLabel={`${bot.name} has no live short trades.`} />
+                  <TradeGroup title="Live long trades" tone="long" trades={liveLong} emptyLabel={`${bot.name} has no live long trades.`} livePrices={livePrices} />
+                  <TradeGroup title="Live short trades" tone="short" trades={liveShort} emptyLabel={`${bot.name} has no live short trades.`} livePrices={livePrices} />
                 </div>
               )
             ) : (
@@ -138,9 +143,10 @@ type TradeGroupProps = {
   trades: OnChainTrade[];
   emptyLabel: string;
   compact?: boolean;
+  livePrices?: Record<string, number>;
 };
 
-function TradeGroup({ title, tone, trades, emptyLabel, compact = false }: TradeGroupProps) {
+function TradeGroup({ title, tone, trades, emptyLabel, compact = false, livePrices = {} }: TradeGroupProps) {
   const Icon = tone === "long" ? TrendingUp : TrendingDown;
 
   return (
@@ -154,28 +160,58 @@ function TradeGroup({ title, tone, trades, emptyLabel, compact = false }: TradeG
           <div className="empty-trades">{emptyLabel}</div>
         ) : (
           trades.map((trade) => (
-            <article className={`trade-row ${compact ? "compact" : ""}`} key={trade.id}>
-              <div>
-                <strong>{trade.symbol}</strong>
-                <span>{trade.status === "open" ? "Live trade" : `Closed / ${trade.pnl >= 0 ? "Win" : "Loss"}`} / {trade.isLong ? "Long" : "Short"}</span>
-              </div>
-              <div>
-                <span>{trade.status === "open" ? "Entry" : "Entry / Exit"}</span>
-                <strong>
-                  ${trade.entryPrice.toLocaleString()}
-                  {trade.exitPrice > 0 ? ` / $${trade.exitPrice.toLocaleString()}` : ""}
-                </strong>
-              </div>
-              <div>
-                <span>{trade.status === "open" ? "Active PnL" : new Date(trade.openedAt * 1000).toLocaleDateString()}</span>
-                <strong className={trade.pnl >= 0 ? "positive" : "negative"}>
-                  {trade.pnl >= 0 ? "+" : ""}{trade.pnl.toFixed(2)} USDC
-                </strong>
-              </div>
-            </article>
+            <LiveTradeRow key={trade.id} trade={trade} compact={compact} livePrices={livePrices} />
           ))
         )}
       </div>
     </section>
+  );
+}
+
+/* ── Individual trade row with live PnL ───────────────── */
+
+function LiveTradeRow({ trade, compact, livePrices }: { trade: OnChainTrade; compact: boolean; livePrices: Record<string, number> }) {
+  const isOpen = trade.status === "open";
+  const currentPrice = livePrices[trade.symbol];
+
+  // For open trades: calculate unrealized PnL from live price
+  // For closed trades: use the on-chain recorded PnL
+  const displayPnl = isOpen && currentPrice
+    ? calcUnrealizedPnl(trade.entryPrice, currentPrice, trade.collateral, trade.isLong)
+    : trade.pnl;
+
+  const pnlPositive = displayPnl >= 0;
+  const pnlPercent = trade.entryPrice > 0 && currentPrice
+    ? ((currentPrice - trade.entryPrice) / trade.entryPrice * 100 * (trade.isLong ? 1 : -1))
+    : 0;
+
+  return (
+    <article className={`trade-row ${compact ? "compact" : ""}`}>
+      <div>
+        <strong>{trade.symbol}</strong>
+        <span>
+          {isOpen ? "Live trade" : `Closed / ${trade.pnl >= 0 ? "Win" : "Loss"}`} / {trade.isLong ? "Long" : "Short"}
+        </span>
+      </div>
+      <div>
+        <span>{isOpen ? "Entry" : "Entry / Exit"}</span>
+        <strong>
+          ${trade.entryPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          {trade.exitPrice > 0 ? ` / $${trade.exitPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : ""}
+        </strong>
+      </div>
+      <div>
+        <span>
+          {isOpen
+            ? (currentPrice ? `Mark $${currentPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "Active PnL")
+            : new Date(trade.openedAt * 1000).toLocaleDateString()
+          }
+        </span>
+        <strong className={`${pnlPositive ? "positive" : "negative"} ${isOpen && currentPrice ? "pnl-live" : ""}`}>
+          {pnlPositive ? "+" : ""}{displayPnl.toFixed(2)} USDC
+          {isOpen && currentPrice ? <span className="pnl-percent"> ({pnlPercent >= 0 ? "+" : ""}{pnlPercent.toFixed(2)}%)</span> : ""}
+        </strong>
+      </div>
+    </article>
   );
 }

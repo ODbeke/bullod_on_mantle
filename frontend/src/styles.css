@@ -932,3 +932,38 @@ h3 {
 .allocation-status strong {
   color: #a7f3d0;
 }
+
+/* ── Live PnL animation ─────────────────────────────── */
+
+.pnl-live {
+  animation: pnlPulse 2s ease-in-out infinite;
+  position: relative;
+}
+
+.pnl-live.positive {
+  text-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+}
+
+.pnl-live.negative {
+  text-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+}
+
+@keyframes pnlPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.pnl-percent {
+  font-size: 0.75em;
+  font-weight: 600;
+  opacity: 0.8;
+  margin-left: 2px;
+}
+
+.trade-row .positive.pnl-live {
+  color: #34d399;
+}
+
+.trade-row .negative.pnl-live {
+  color: #f87171;
+}
