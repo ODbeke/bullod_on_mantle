@@ -6,11 +6,12 @@ import { MarketChart } from "../components/MarketChart";
 import { WalletBar } from "../components/WalletBar";
 import { contractsConfigured, depositAndAllocate, mintMockUsdc } from "../lib/contracts";
 import { bots, type Bot } from "../lib/bots";
+import { useVaultData } from "../lib/useVaultData";
 
 export function Dashboard() {
   const { address, isConnected } = useAccount();
+  const { userData, globalData, loading, refresh } = useVaultData();
   const [selectedBot, setSelectedBot] = useState<Bot | null>(null);
-  const [allocations, setAllocations] = useState<Record<number, number>>({ 1: 750, 3: 1200 });
   const [status, setStatus] = useState(
     contractsConfigured()
       ? "Vault contracts are configured for Mantle Sepolia. Connect a wallet to mint, deposit, and allocate on-chain."
@@ -24,16 +25,16 @@ export function Dashboard() {
       try {
         await depositAndAllocate(address, botId, amount);
         setStatus(`Allocated ${amount.toLocaleString()} mUSDC to Bot ${botId} on-chain.`);
+        await refresh(); // re-fetch live data after on-chain action
       } catch (error) {
         setStatus(error instanceof Error ? error.message : "On-chain allocation failed.");
         return;
       }
     } else if (!address) {
-      setStatus("Connect a wallet to allocate on-chain. Demo allocation updated locally.");
+      setStatus("Connect a wallet to allocate on-chain.");
     } else {
-      setStatus("Contract addresses are not configured yet. Demo allocation updated locally.");
+      setStatus("Contract addresses are not configured yet.");
     }
-    setAllocations((current) => ({ ...current, [botId]: amount }));
   }
 
   async function handleMint() {
@@ -44,7 +45,7 @@ export function Dashboard() {
 
     const localStorageKey = `faucet_cooldown_${address.toLowerCase()}`;
     const lastClaim = localStorage.getItem(localStorageKey);
-    const cooldownPeriod = 24 * 60 * 60 * 1000; // 24 hours in ms
+    const cooldownPeriod = 24 * 60 * 60 * 1000;
 
     if (lastClaim) {
       const timePassed = Date.now() - parseInt(lastClaim, 10);
@@ -53,10 +54,8 @@ export function Dashboard() {
         const hours = Math.floor(timeLeft / (60 * 60 * 1000));
         const minutes = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
         const seconds = Math.floor((timeLeft % (60 * 1000)) / 1000);
-        
         const countdownStr = `${hours}h ${minutes}m ${seconds}s`;
-        const errorMsg = `Faucet cooldown active. Please try again in ${countdownStr}.`;
-        setStatus(errorMsg);
+        setStatus(`Faucet cooldown active. Please try again in ${countdownStr}.`);
         alert(`⏳ Faucet Cooldown Active\n\nYou have already claimed tokens recently. Please wait ${countdownStr} before claiming again.`);
         return;
       }
@@ -71,13 +70,16 @@ export function Dashboard() {
       await mintMockUsdc(address);
       localStorage.setItem(localStorageKey, Date.now().toString());
       setStatus("Minted 10,000 mUSDC to your wallet.");
+      await refresh(); // re-fetch balances after minting
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Mint transaction failed.");
     }
   }
 
-  const activeCount = Object.values(allocations).filter(Boolean).length;
-  const totalAllocation = Object.values(allocations).reduce((total, value) => total + value, 0);
+  /* ── Derived values from on-chain data ────────────── */
+  const { activeBotCount, totalAllocated, totalPnl } = userData;
+  const pnlPercent = totalAllocated > 0 ? ((totalPnl / totalAllocated) * 100).toFixed(2) : "0.00";
+  const pnlIsPositive = totalPnl >= 0;
 
   return (
     <main>
@@ -89,11 +91,11 @@ export function Dashboard() {
           {isConnected ? (
             <div className="stats-pill-container">
               <div className="stats-pill">
-                <span className="pulse-dot" aria-hidden="true" />
-                <strong>{activeCount} bots live</strong>
+                {activeBotCount > 0 && <span className="pulse-dot" aria-hidden="true" />}
+                <strong>{loading ? "…" : `${activeBotCount} bots live`}</strong>
               </div>
               <div className="stats-pill">
-                <strong>${totalAllocation.toLocaleString()} mUSDC allocated</strong>
+                <strong>{loading ? "…" : `$${totalAllocated.toLocaleString()} mUSDC allocated`}</strong>
               </div>
             </div>
           ) : (
@@ -104,9 +106,22 @@ export function Dashboard() {
           <p className="status-line">{status}</p>
         </div>
         <div className="metric-row">
-          <div><span>Vault equity</span><strong>$14,286.40</strong></div>
-          <div><span>Open PnL</span><strong className="positive">+3.42%</strong></div>
-          <div><span>Indexed trades</span><strong>1,248</strong></div>
+          <div>
+            <span>Vault equity</span>
+            <strong>
+              {loading ? "…" : `$${globalData.totalVaultBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+            </strong>
+          </div>
+          <div>
+            <span>Open PnL</span>
+            <strong className={pnlIsPositive ? "positive" : "negative"}>
+              {isConnected ? `${pnlIsPositive ? "+" : ""}${pnlPercent}%` : "—"}
+            </strong>
+          </div>
+          <div>
+            <span>Indexed trades</span>
+            <strong>{loading ? "…" : globalData.totalTradeCount.toLocaleString()}</strong>
+          </div>
         </div>
       </section>
       <MarketChart />
@@ -119,11 +134,17 @@ export function Dashboard() {
         </div>
         <div className="bot-grid">
           {bots.map((bot) => (
-            <BotCard key={bot.id} bot={bot} active={Boolean(allocations[bot.id])} onOpen={setSelectedBot} />
+            <BotCard key={bot.id} bot={bot} active={(userData.allocations[bot.id] ?? 0) > 0} onOpen={setSelectedBot} />
           ))}
         </div>
       </section>
-      <BotModal bot={selectedBot} active={Boolean(selectedBot && allocations[selectedBot.id])} onClose={() => setSelectedBot(null)} onActivate={activateBot} />
+      <BotModal
+        bot={selectedBot}
+        active={Boolean(selectedBot && (userData.allocations[selectedBot.id] ?? 0) > 0)}
+        userTrades={userData.trades}
+        onClose={() => setSelectedBot(null)}
+        onActivate={activateBot}
+      />
     </main>
   );
 }
