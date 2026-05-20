@@ -29,6 +29,7 @@ const usdcAbi = [
 
 const vaultAbi = [
   { type: "function", name: "deposit", stateMutability: "nonpayable", inputs: [{ name: "amount", type: "uint256" }], outputs: [] },
+  { type: "function", name: "withdraw", stateMutability: "nonpayable", inputs: [{ name: "amount", type: "uint256" }], outputs: [] },
   {
     type: "function",
     name: "allocate",
@@ -178,14 +179,23 @@ export async function deallocateBot(account: Address, botId: number, amount: num
   const client = walletClient(account);
   await client.switchChain({ id: mantleSepolia.id });
 
-  const hash = await client.writeContract({
+  const deallocHash = await client.writeContract({
     address: TRADING_VAULT_ADDRESS,
     abi: vaultAbi,
     functionName: "deallocate",
     args: [botId, units],
   });
-  await publicClient.waitForTransactionReceipt({ hash });
-  return hash;
+  await publicClient.waitForTransactionReceipt({ hash: deallocHash });
+
+  const withdrawHash = await client.writeContract({
+    address: TRADING_VAULT_ADDRESS,
+    abi: vaultAbi,
+    functionName: "withdraw",
+    args: [units],
+  });
+  await publicClient.waitForTransactionReceipt({ hash: withdrawHash });
+  
+  return withdrawHash;
 }
 
 /* ── Read operations ──────────────────────────────────── */
