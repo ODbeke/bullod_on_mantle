@@ -206,6 +206,7 @@ export interface OnChainTrade {
 }
 
 export interface UserVaultData {
+  walletBalance: number;
   availableBalance: number;
   allocations: Record<number, number>;
   activeBotCount: number;
@@ -224,12 +225,18 @@ export interface GlobalVaultData {
 const BOT_IDS = [1, 2, 3, 4, 5] as const;
 
 export async function fetchUserVaultData(account: Address): Promise<UserVaultData> {
-  if (!TRADING_VAULT_ADDRESS) {
-    return { availableBalance: 0, allocations: {}, activeBotCount: 0, totalAllocated: 0, trades: [], totalPnl: 0, openTradeCount: 0, closedTradeCount: 0 };
+  if (!TRADING_VAULT_ADDRESS || !MOCK_USDC_ADDRESS) {
+    return { walletBalance: 0, availableBalance: 0, allocations: {}, activeBotCount: 0, totalAllocated: 0, trades: [], totalPnl: 0, openTradeCount: 0, closedTradeCount: 0 };
   }
 
-  // Fetch available balance + all 5 bot allocations in parallel
-  const [balanceRaw, ...allocationResults] = await Promise.all([
+  // Fetch wallet mUSDC balance + vault available balance + all 5 bot allocations in parallel
+  const [walletRaw, balanceRaw, ...allocationResults] = await Promise.all([
+    publicClient.readContract({
+      address: MOCK_USDC_ADDRESS,
+      abi: usdcAbi,
+      functionName: "balanceOf",
+      args: [account],
+    }),
     publicClient.readContract({
       address: TRADING_VAULT_ADDRESS,
       abi: vaultAbi,
@@ -246,6 +253,7 @@ export async function fetchUserVaultData(account: Address): Promise<UserVaultDat
     ),
   ]);
 
+  const walletBalance = Number(formatUnits(walletRaw, 6));
   const availableBalance = Number(formatUnits(balanceRaw, 6));
   const allocations: Record<number, number> = {};
   let totalAllocated = 0;
@@ -317,7 +325,7 @@ export async function fetchUserVaultData(account: Address): Promise<UserVaultDat
     // getUserTrades may revert for new users — treat as empty
   }
 
-  return { availableBalance, allocations, activeBotCount, totalAllocated, trades, totalPnl, openTradeCount, closedTradeCount };
+  return { walletBalance, availableBalance, allocations, activeBotCount, totalAllocated, trades, totalPnl, openTradeCount, closedTradeCount };
 }
 
 export async function fetchGlobalVaultData(): Promise<GlobalVaultData> {

@@ -98,7 +98,7 @@ export function Dashboard() {
   return (
     <main>
       <div className="background-grid" />
-      <WalletBar onMint={handleMint} balance={userData.availableBalance} />
+      <WalletBar onMint={handleMint} balance={userData.walletBalance} />
       <section className="overview">
         <div className="operations-info">
           <span className="eyebrow">operations</span>
