@@ -174,6 +174,15 @@ function LiveTradeRow({ trade, compact, livePrices }: { trade: OnChainTrade; com
   const isOpen = trade.status === "open";
   const currentPrice = livePrices[trade.symbol];
 
+  // Helper to format prices with dynamic decimals (4 for assets < $2, 2 otherwise)
+  const formatPrice = (p: number) => {
+    const decimals = p < 2.0 ? 4 : 2;
+    return p.toLocaleString(undefined, {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    });
+  };
+
   // For open trades: calculate unrealized PnL from live price
   // For closed trades: use the on-chain recorded PnL
   const displayPnl = isOpen && currentPrice
@@ -196,14 +205,14 @@ function LiveTradeRow({ trade, compact, livePrices }: { trade: OnChainTrade; com
       <div>
         <span>{isOpen ? "Entry" : "Entry / Exit"}</span>
         <strong>
-          ${trade.entryPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          {trade.exitPrice > 0 ? ` / $${trade.exitPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : ""}
+          ${formatPrice(trade.entryPrice)}
+          {trade.exitPrice > 0 ? ` / $${formatPrice(trade.exitPrice)}` : ""}
         </strong>
       </div>
       <div>
         <span>
           {isOpen
-            ? (currentPrice ? `Mark $${currentPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "Active PnL")
+            ? (currentPrice ? `Mark $${formatPrice(currentPrice)}` : "Active PnL")
             : new Date(trade.openedAt * 1000).toLocaleDateString()
           }
         </span>

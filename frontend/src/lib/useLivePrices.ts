@@ -7,9 +7,10 @@ const COINGECKO_MAP: Record<string, string> = {
   MNT: "mantle",
 };
 
-// Maps on-chain symbols (e.g., "BTC/USDT", "BTCUSDT") to base symbols (e.g. "BTC")
+// Maps on-chain symbols (e.g., "BTC/USDT", "BTCUSDT", "mnt/usdt") to base symbols (e.g. "BTC") case-insensitively
 function toBaseSymbol(symbol: string): string {
-  return symbol.replace("/USDT", "").replace("USDT", "");
+  if (!symbol) return "";
+  return symbol.toUpperCase().replace("/USDT", "").replace("USDT", "").trim();
 }
 
 const POLL_INTERVAL = 5_000; // 5 seconds to be gentle on public endpoints
@@ -34,55 +35,63 @@ export function useLivePrices(symbols: string[]) {
       .join(",");
 
     async function fetchPrices() {
+      console.log("[useLivePrices] Fetching live prices for symbols:", symbols, "base:", baseSymbols);
+
       try {
         // Try CoinGecko first (highly reliable free tier, generous rate limits)
         if (geckoIds) {
-          const res = await fetch(
-            `https://api.coingecko.com/api/v3/simple/price?ids=${geckoIds}&vs_currencies=usd`
-          );
+          const url = `https://api.coingecko.com/api/v3/simple/price?ids=${geckoIds}&vs_currencies=usd`;
+          const res = await fetch(url);
           if (res.ok) {
             const data = await res.json();
+            console.log("[useLivePrices] CoinGecko response data:", data);
+            
             const newPrices: Record<string, number> = {};
             for (const sym of symbols) {
               const base = toBaseSymbol(sym);
               const geckoId = COINGECKO_MAP[base];
-              if (data[geckoId]?.usd) {
+              if (data[geckoId]?.usd !== undefined) {
                 newPrices[sym] = data[geckoId].usd;
               }
             }
             if (Object.keys(newPrices).length > 0) {
+              console.log("[useLivePrices] Mapped new prices from CoinGecko:", newPrices);
               setPrices(newPrices);
               return; // Success!
             }
           }
         }
       } catch (err) {
-        // Silently fall back to CryptoCompare
+        console.warn("[useLivePrices] CoinGecko fetch error, falling back:", err);
       }
 
       // ─── FALLBACK: CryptoCompare ───
       try {
-        const res = await fetch(
-          `https://min-api.cryptocompare.com/data/pricemulti?fsyms=${ccFsyms}&tsyms=USD`
-        );
+        const url = `https://min-api.cryptocompare.com/data/pricemulti?fsyms=${ccFsyms}&tsyms=USD`;
+        const res = await fetch(url);
         if (res.ok) {
           const data = await res.json();
+          console.log("[useLivePrices] CryptoCompare response data:", data);
+          
           if (data.Response !== "Error") {
             const newPrices: Record<string, number> = {};
             for (const sym of symbols) {
               const base = toBaseSymbol(sym);
               const ccBase = base === "MNT" ? "MANTLE" : base;
-              if (data[ccBase]?.USD) {
+              if (data[ccBase]?.USD !== undefined) {
                 newPrices[sym] = data[ccBase].USD;
               }
             }
             if (Object.keys(newPrices).length > 0) {
+              console.log("[useLivePrices] Mapped new prices from CryptoCompare:", newPrices);
               setPrices(newPrices);
             }
+          } else {
+            console.warn("[useLivePrices] CryptoCompare returned error response:", data);
           }
         }
-      } catch {
-        // Silently retry on next interval
+      } catch (err) {
+        console.error("[useLivePrices] CryptoCompare fetch error:", err);
       }
     }
 
