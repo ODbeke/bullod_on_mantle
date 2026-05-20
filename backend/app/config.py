@@ -13,7 +13,6 @@ class Settings(BaseSettings):
     mock_usdc_address: str = ""
     trade_recorder_private_key: str = Field(default="", repr=False)
     telegram_bot_token: str = Field(default="", repr=False)
-    bot_user_address: str = ""
     bybit_ws_url: str = "wss://stream.bybit.com/v5/public/spot"
 
 
