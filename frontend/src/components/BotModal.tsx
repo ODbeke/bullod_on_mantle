@@ -1,28 +1,31 @@
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { BarChart3, CircleDollarSign, Play, TrendingDown, TrendingUp, X } from "lucide-react";
+import { BarChart3, CircleDollarSign, Play, TrendingDown, TrendingUp, X, Inbox } from "lucide-react";
 import type { Bot } from "../lib/bots";
-import { mockTrades, type Trade } from "../lib/mockData";
+import type { OnChainTrade } from "../lib/contracts";
 
 type Props = {
   bot: Bot | null;
   active: boolean;
+  userTrades: OnChainTrade[];
   onClose: () => void;
   onActivate: (botId: number, amount: number) => void;
 };
 
-export function BotModal({ bot, active, onClose, onActivate }: Props) {
+export function BotModal({ bot, active, userTrades, onClose, onActivate }: Props) {
   const [amount, setAmount] = useState("500");
   const [tab, setTab] = useState<"trades" | "history">("trades");
-  const trades = useMemo(() => (bot ? mockTrades(bot) : []), [bot]);
-  const liveTrades = trades.filter((trade) => trade.status === "open");
-  const history = trades.filter((trade) => trade.status === "closed");
-  const wins = history.filter((trade) => trade.result === "Win").length;
+
+  // Filter trades belonging to this bot
+  const botTrades = useMemo(() => (bot ? userTrades.filter((t) => t.botId === bot.id) : []), [bot, userTrades]);
+  const liveTrades = botTrades.filter((t) => t.status === "open");
+  const history = botTrades.filter((t) => t.status === "closed");
+  const wins = history.filter((t) => t.pnl >= 0).length;
   const winRate = history.length ? Math.round((wins / history.length) * 100) : 0;
-  const liveLong = liveTrades.filter((trade) => trade.side === "Long");
-  const liveShort = liveTrades.filter((trade) => trade.side === "Short");
-  const closedLong = history.filter((trade) => trade.side === "Long");
-  const closedShort = history.filter((trade) => trade.side === "Short");
+  const liveLong = liveTrades.filter((t) => t.isLong);
+  const liveShort = liveTrades.filter((t) => !t.isLong);
+  const closedLong = history.filter((t) => t.isLong);
+  const closedShort = history.filter((t) => !t.isLong);
 
   return (
     <AnimatePresence>
@@ -62,23 +65,31 @@ export function BotModal({ bot, active, onClose, onActivate }: Props) {
             </div>
 
             {tab === "trades" ? (
-              <div className="trade-book">
-                <TradeGroup title="Live long trades" tone="long" trades={liveLong} emptyLabel={`${bot.name} has no live long trades.`} />
-                <TradeGroup title="Live short trades" tone="short" trades={liveShort} emptyLabel={`${bot.name} has no live short trades.`} />
-              </div>
-            ) : (
-              <div className="history-panel">
-                <div className="analytics-strip">
-                  <span><BarChart3 size={16} /> Win rate <strong>{winRate}%</strong></span>
-                  <span>Total PnL <strong className="positive">+{history.reduce((total, trade) => total + trade.pnl, 0).toFixed(2)} USDC</strong></span>
-                  <span>Closed trades <strong>{history.length}</strong></span>
-                  <span>Long / Short <strong>{closedLong.length} / {closedShort.length}</strong></span>
-                </div>
+              botTrades.length === 0 ? (
+                <EmptyState botName={bot.name} message="No trades yet — allocate capital and start this bot to begin trading." />
+              ) : (
                 <div className="trade-book">
-                  <TradeGroup title="Closed long trades" tone="long" trades={closedLong} emptyLabel={`${bot.name} has no closed long trades.`} compact />
-                  <TradeGroup title="Closed short trades" tone="short" trades={closedShort} emptyLabel={`${bot.name} has no closed short trades.`} compact />
+                  <TradeGroup title="Live long trades" tone="long" trades={liveLong} emptyLabel={`${bot.name} has no live long trades.`} />
+                  <TradeGroup title="Live short trades" tone="short" trades={liveShort} emptyLabel={`${bot.name} has no live short trades.`} />
                 </div>
-              </div>
+              )
+            ) : (
+              history.length === 0 ? (
+                <EmptyState botName={bot.name} message="No trade history yet — your closed trades will appear here." />
+              ) : (
+                <div className="history-panel">
+                  <div className="analytics-strip">
+                    <span><BarChart3 size={16} /> Win rate <strong>{winRate}%</strong></span>
+                    <span>Total PnL <strong className={history.reduce((t, tr) => t + tr.pnl, 0) >= 0 ? "positive" : "negative"}>{history.reduce((t, tr) => t + tr.pnl, 0) >= 0 ? "+" : ""}{history.reduce((t, tr) => t + tr.pnl, 0).toFixed(2)} USDC</strong></span>
+                    <span>Closed trades <strong>{history.length}</strong></span>
+                    <span>Long / Short <strong>{closedLong.length} / {closedShort.length}</strong></span>
+                  </div>
+                  <div className="trade-book">
+                    <TradeGroup title="Closed long trades" tone="long" trades={closedLong} emptyLabel={`${bot.name} has no closed long trades.`} compact />
+                    <TradeGroup title="Closed short trades" tone="short" trades={closedShort} emptyLabel={`${bot.name} has no closed short trades.`} compact />
+                  </div>
+                </div>
+              )
             )}
           </motion.section>
         </motion.div>
@@ -87,10 +98,24 @@ export function BotModal({ bot, active, onClose, onActivate }: Props) {
   );
 }
 
+/* ── Empty state ──────────────────────────────────────── */
+
+function EmptyState({ botName, message }: { botName: string; message: string }) {
+  return (
+    <div className="empty-state-panel">
+      <Inbox size={40} strokeWidth={1.2} />
+      <h3>No activity for {botName}</h3>
+      <p>{message}</p>
+    </div>
+  );
+}
+
+/* ── Trade group ──────────────────────────────────────── */
+
 type TradeGroupProps = {
   title: string;
   tone: "long" | "short";
-  trades: Trade[];
+  trades: OnChainTrade[];
   emptyLabel: string;
   compact?: boolean;
 };
@@ -112,17 +137,17 @@ function TradeGroup({ title, tone, trades, emptyLabel, compact = false }: TradeG
             <article className={`trade-row ${compact ? "compact" : ""}`} key={trade.id}>
               <div>
                 <strong>{trade.symbol}</strong>
-                <span>{trade.status === "open" ? "Live trade" : `Closed / ${trade.result}`} / {trade.side}</span>
+                <span>{trade.status === "open" ? "Live trade" : `Closed / ${trade.pnl >= 0 ? "Win" : "Loss"}`} / {trade.isLong ? "Long" : "Short"}</span>
               </div>
               <div>
                 <span>{trade.status === "open" ? "Entry" : "Entry / Exit"}</span>
                 <strong>
-                  ${trade.entry.toLocaleString()}
-                  {trade.exit ? ` / $${trade.exit.toLocaleString()}` : ""}
+                  ${trade.entryPrice.toLocaleString()}
+                  {trade.exitPrice > 0 ? ` / $${trade.exitPrice.toLocaleString()}` : ""}
                 </strong>
               </div>
               <div>
-                <span>{trade.status === "open" ? "Active PnL" : trade.openedAt}</span>
+                <span>{trade.status === "open" ? "Active PnL" : new Date(trade.openedAt * 1000).toLocaleDateString()}</span>
                 <strong className={trade.pnl >= 0 ? "positive" : "negative"}>
                   {trade.pnl >= 0 ? "+" : ""}{trade.pnl.toFixed(2)} USDC
                 </strong>
