@@ -258,7 +258,8 @@ export async function fetchUserVaultData(account: Address): Promise<UserVaultDat
 
       trades = tradeResults.map((t) => {
         const status = Number(t[11]) === 0 ? "open" as const : "closed" as const;
-        const pnl = Number(formatUnits(t[8] < 0n ? t[8] : t[8], 6));
+        const pnlRaw = t[8];
+        const pnl = Number(formatUnits(pnlRaw < 0n ? -(-pnlRaw) : pnlRaw, 6));
         if (status === "open") openTradeCount++;
         else closedTradeCount++;
         totalPnl += pnl;
@@ -270,8 +271,8 @@ export async function fetchUserVaultData(account: Address): Promise<UserVaultDat
           symbol: t[3],
           isLong: t[4],
           collateral: Number(formatUnits(t[5], 6)),
-          entryPrice: Number(formatUnits(t[6], 6)),
-          exitPrice: Number(formatUnits(t[7], 6)),
+          entryPrice: Number(formatUnits(t[6], 8)),
+          exitPrice: Number(formatUnits(t[7], 8)),
           pnl,
           openedAt: Number(t[9]),
           closedAt: Number(t[10]),
