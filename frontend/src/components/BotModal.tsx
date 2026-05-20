@@ -68,7 +68,7 @@ export function BotModal({ bot, active, botAllocation, userTrades, onClose, onAc
             {active && (
               <div className="allocation-status">
                 <Zap size={14} />
-                <span>Active — <strong>${botAllocation.toLocaleString()} mUSDC</strong> allocated to {bot.name}</span>
+                <span>{liveTrades.length > 0 ? "Live" : "Idle"} — <strong>${botAllocation.toLocaleString()} mUSDC</strong> allocated to {bot.name}</span>
               </div>
             )}
 
