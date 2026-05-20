@@ -141,6 +141,7 @@ export function Dashboard() {
       <BotModal
         bot={selectedBot}
         active={Boolean(selectedBot && (userData.allocations[selectedBot.id] ?? 0) > 0)}
+        botAllocation={selectedBot ? (userData.allocations[selectedBot.id] ?? 0) : 0}
         userTrades={userData.trades}
         onClose={() => setSelectedBot(null)}
         onActivate={activateBot}

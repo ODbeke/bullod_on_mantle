@@ -1,18 +1,19 @@
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { BarChart3, CircleDollarSign, Play, TrendingDown, TrendingUp, X, Inbox } from "lucide-react";
+import { BarChart3, CircleDollarSign, Play, TrendingDown, TrendingUp, X, Inbox, Zap } from "lucide-react";
 import type { Bot } from "../lib/bots";
 import type { OnChainTrade } from "../lib/contracts";
 
 type Props = {
   bot: Bot | null;
   active: boolean;
+  botAllocation: number;
   userTrades: OnChainTrade[];
   onClose: () => void;
   onActivate: (botId: number, amount: number) => void;
 };
 
-export function BotModal({ bot, active, userTrades, onClose, onActivate }: Props) {
+export function BotModal({ bot, active, botAllocation, userTrades, onClose, onActivate }: Props) {
   const [amount, setAmount] = useState("500");
   const [tab, setTab] = useState<"trades" | "history">("trades");
 
@@ -59,6 +60,13 @@ export function BotModal({ bot, active, userTrades, onClose, onActivate }: Props
               </button>
             </div>
 
+            {active && (
+              <div className="allocation-status">
+                <Zap size={14} />
+                <span>Active — <strong>${botAllocation.toLocaleString()} mUSDC</strong> allocated to {bot.name}</span>
+              </div>
+            )}
+
             <div className="tabs">
               <button className={tab === "trades" ? "selected" : ""} type="button" onClick={() => setTab("trades")}>Trades</button>
               <button className={tab === "history" ? "selected" : ""} type="button" onClick={() => setTab("history")}>History</button>
@@ -66,7 +74,13 @@ export function BotModal({ bot, active, userTrades, onClose, onActivate }: Props
 
             {tab === "trades" ? (
               botTrades.length === 0 ? (
-                <EmptyState botName={bot.name} message="No trades yet — allocate capital and start this bot to begin trading." />
+                <EmptyState
+                  botName={bot.name}
+                  message={active
+                    ? `${bot.name} is live with $${botAllocation.toLocaleString()} mUSDC. Waiting for market conditions to open the first trade.`
+                    : "No trades yet — allocate capital and start this bot to begin trading."
+                  }
+                />
               ) : (
                 <div className="trade-book">
                   <TradeGroup title="Live long trades" tone="long" trades={liveLong} emptyLabel={`${bot.name} has no live long trades.`} />
@@ -75,7 +89,13 @@ export function BotModal({ bot, active, userTrades, onClose, onActivate }: Props
               )
             ) : (
               history.length === 0 ? (
-                <EmptyState botName={bot.name} message="No trade history yet — your closed trades will appear here." />
+                <EmptyState
+                  botName={bot.name}
+                  message={active
+                    ? `${bot.name} is active but has not closed any trades yet. Completed trades will appear here.`
+                    : "No trade history yet — your closed trades will appear here."
+                  }
+                />
               ) : (
                 <div className="history-panel">
                   <div className="analytics-strip">
