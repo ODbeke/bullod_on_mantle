@@ -13,7 +13,13 @@ function toBaseSymbol(symbol: string): string {
   return symbol.toUpperCase().replace("/USDT", "").replace("USDT", "").trim();
 }
 
-const POLL_INTERVAL = 5_000; // 5 seconds to be gentle on public endpoints
+// Maps standard symbols to Bybit Spot tickers (e.g. "BTC/USDT" -> "BTCUSDT")
+function toBybitSymbol(symbol: string): string {
+  const base = toBaseSymbol(symbol);
+  return `${base}USDT`;
+}
+
+const POLL_INTERVAL = 5_000; // 5 seconds
 
 export function useLivePrices(symbols: string[]) {
   const [prices, setPrices] = useState<Record<string, number>>({});
@@ -35,17 +41,41 @@ export function useLivePrices(symbols: string[]) {
       .join(",");
 
     async function fetchPrices() {
-      console.log("[useLivePrices] Fetching live prices for symbols:", symbols, "base:", baseSymbols);
-
+      // ─── PRIMARY: Bybit Spot Tickers (Zero rate-limit blocks, matches active trading) ───
       try {
-        // Try CoinGecko first (highly reliable free tier, generous rate limits)
+        const res = await fetch("https://api.bybit.com/v5/market/tickers?category=spot");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.retCode === 0 && json.result?.list) {
+            const list = json.result.list;
+            const bybitPrices: Record<string, number> = {};
+            for (const item of list) {
+              bybitPrices[item.symbol] = parseFloat(item.lastPrice);
+            }
+            const newPrices: Record<string, number> = {};
+            for (const sym of symbols) {
+              const bybitSym = toBybitSymbol(sym);
+              if (bybitPrices[bybitSym] !== undefined && !isNaN(bybitPrices[bybitSym])) {
+                newPrices[sym] = bybitPrices[bybitSym];
+              }
+            }
+            if (Object.keys(newPrices).length > 0) {
+              setPrices(newPrices);
+              return; // Success!
+            }
+          }
+        }
+      } catch (err) {
+        // Silently move to next fallback
+      }
+
+      // ─── SECONDARY: CoinGecko (Highly reliable free tier) ───
+      try {
         if (geckoIds) {
           const url = `https://api.coingecko.com/api/v3/simple/price?ids=${geckoIds}&vs_currencies=usd`;
           const res = await fetch(url);
           if (res.ok) {
             const data = await res.json();
-            console.log("[useLivePrices] CoinGecko response data:", data);
-            
             const newPrices: Record<string, number> = {};
             for (const sym of symbols) {
               const base = toBaseSymbol(sym);
@@ -55,24 +85,21 @@ export function useLivePrices(symbols: string[]) {
               }
             }
             if (Object.keys(newPrices).length > 0) {
-              console.log("[useLivePrices] Mapped new prices from CoinGecko:", newPrices);
               setPrices(newPrices);
               return; // Success!
             }
           }
         }
       } catch (err) {
-        console.warn("[useLivePrices] CoinGecko fetch error, falling back:", err);
+        // Silently move to next fallback
       }
 
-      // ─── FALLBACK: CryptoCompare ───
+      // ─── TERTIARY: CryptoCompare ───
       try {
         const url = `https://min-api.cryptocompare.com/data/pricemulti?fsyms=${ccFsyms}&tsyms=USD`;
         const res = await fetch(url);
         if (res.ok) {
           const data = await res.json();
-          console.log("[useLivePrices] CryptoCompare response data:", data);
-          
           if (data.Response !== "Error") {
             const newPrices: Record<string, number> = {};
             for (const sym of symbols) {
@@ -83,15 +110,12 @@ export function useLivePrices(symbols: string[]) {
               }
             }
             if (Object.keys(newPrices).length > 0) {
-              console.log("[useLivePrices] Mapped new prices from CryptoCompare:", newPrices);
               setPrices(newPrices);
             }
-          } else {
-            console.warn("[useLivePrices] CryptoCompare returned error response:", data);
           }
         }
       } catch (err) {
-        console.error("[useLivePrices] CryptoCompare fetch error:", err);
+        // Silently retry on next interval
       }
     }
 

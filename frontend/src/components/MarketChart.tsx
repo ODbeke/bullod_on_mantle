@@ -30,7 +30,35 @@ export interface DataPoint {
 /* ── Data helpers ───────────────────────────────────────── */
 
 const fetchPrices = async () => {
-  // Try CoinGecko first (highly reliable free tier)
+  // 1. Try Bybit Spot Ticker API (CORS enabled, highly resilient, zero key rate limits)
+  try {
+    const res = await fetch("https://api.bybit.com/v5/market/tickers?category=spot");
+    if (res.ok) {
+      const json = await res.json();
+      if (json.retCode === 0 && json.result?.list) {
+        const list = json.result.list;
+        const prices: Record<string, number> = {};
+        for (const item of list) {
+          if (item.symbol === "BTCUSDT") prices.BTC = parseFloat(item.lastPrice);
+          if (item.symbol === "ETHUSDT") prices.ETH = parseFloat(item.lastPrice);
+          if (item.symbol === "SOLUSDT") prices.SOL = parseFloat(item.lastPrice);
+          if (item.symbol === "MNTUSDT") prices.MNT = parseFloat(item.lastPrice);
+        }
+        if (prices.BTC && prices.ETH && prices.SOL && prices.MNT) {
+          return {
+            BTC: prices.BTC,
+            ETH: prices.ETH,
+            SOL: prices.SOL,
+            MNT: prices.MNT,
+          };
+        }
+      }
+    }
+  } catch (e) {
+    // Fallback to CoinGecko
+  }
+
+  // 2. Try CoinGecko second (highly reliable free tier)
   try {
     const res = await fetch(
       "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,mantle&vs_currencies=usd"
@@ -50,7 +78,7 @@ const fetchPrices = async () => {
     // Fallback to CryptoCompare
   }
 
-  // Fallback: CryptoCompare (with mapping MNT -> MANTLE)
+  // 3. Fallback: CryptoCompare (with mapping MNT -> MANTLE)
   try {
     const res = await fetch(
       "https://min-api.cryptocompare.com/data/pricemulti?fsyms=BTC,ETH,SOL,MANTLE&tsyms=USD"
