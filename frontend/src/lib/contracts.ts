@@ -41,6 +41,16 @@ const vaultAbi = [
   },
   {
     type: "function",
+    name: "deallocate",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "botId", type: "uint8" },
+      { name: "amount", type: "uint256" },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
     name: "availableBalance",
     stateMutability: "view",
     inputs: [{ name: "", type: "address" }],
@@ -158,6 +168,24 @@ export async function depositAndAllocate(account: Address, botId: number, amount
   await publicClient.waitForTransactionReceipt({ hash: allocateHash });
 
   return allocateHash;
+}
+
+export async function deallocateBot(account: Address, botId: number, amount: number) {
+  if (!TRADING_VAULT_ADDRESS) {
+    throw new Error("Contract addresses are not configured");
+  }
+  const units = parseUnits(String(amount), 6);
+  const client = walletClient(account);
+  await client.switchChain({ id: mantleSepolia.id });
+
+  const hash = await client.writeContract({
+    address: TRADING_VAULT_ADDRESS,
+    abi: vaultAbi,
+    functionName: "deallocate",
+    args: [botId, units],
+  });
+  await publicClient.waitForTransactionReceipt({ hash });
+  return hash;
 }
 
 /* ── Read operations ──────────────────────────────────── */

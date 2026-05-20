@@ -4,7 +4,7 @@ import { BotCard } from "../components/BotCard";
 import { BotModal } from "../components/BotModal";
 import { MarketChart } from "../components/MarketChart";
 import { WalletBar } from "../components/WalletBar";
-import { contractsConfigured, depositAndAllocate, mintMockUsdc } from "../lib/contracts";
+import { contractsConfigured, depositAndAllocate, mintMockUsdc, deallocateBot } from "../lib/contracts";
 import { bots, type Bot } from "../lib/bots";
 import { useVaultData } from "../lib/useVaultData";
 
@@ -34,6 +34,20 @@ export function Dashboard() {
       setStatus("Connect a wallet to allocate on-chain.");
     } else {
       setStatus("Contract addresses are not configured yet.");
+    }
+  }
+
+  async function handleDeallocate(botId: number, amount: number) {
+    if (amount <= 0) return;
+    if (address && contractsConfigured()) {
+      setStatus(`Withdrawing ${amount} mUSDC from Bot ${botId}...`);
+      try {
+        await deallocateBot(address, botId, amount);
+        setStatus(`Successfully withdrew ${amount.toLocaleString()} mUSDC from Bot ${botId}.`);
+        await refresh();
+      } catch (error) {
+        setStatus(error instanceof Error ? error.message : "On-chain withdrawal failed.");
+      }
     }
   }
 
@@ -84,7 +98,7 @@ export function Dashboard() {
   return (
     <main>
       <div className="background-grid" />
-      <WalletBar onMint={handleMint} />
+      <WalletBar onMint={handleMint} balance={userData.availableBalance} />
       <section className="overview">
         <div className="operations-info">
           <span className="eyebrow">operations</span>
@@ -150,6 +164,7 @@ export function Dashboard() {
         userTrades={userData.trades}
         onClose={() => setSelectedBot(null)}
         onActivate={activateBot}
+        onDeallocate={handleDeallocate}
       />
     </main>
   );

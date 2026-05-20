@@ -1,14 +1,17 @@
+import { useState } from "react";
 import { Activity, LogOut, Wallet, Bell, Fuel } from "lucide-react";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 
 type Props = {
   onMint: () => void;
+  balance?: number;
 };
 
-export function WalletBar({ onMint }: Props) {
+export function WalletBar({ onMint, balance = 0 }: Props) {
   const { address, isConnected } = useAccount();
   const { connectors, connect, isPending } = useConnect();
   const { disconnect } = useDisconnect();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const handleActivateTelegram = () => {
     if (address) {
@@ -36,10 +39,24 @@ export function WalletBar({ onMint }: Props) {
           Faucet
         </button>
         {isConnected ? (
-          <button className="primary-button" type="button" onClick={() => disconnect()}>
-            <LogOut size={18} />
-            {address?.slice(0, 6)}...{address?.slice(-4)}
-          </button>
+          <div className="wallet-dropdown-container">
+            <button className="primary-button" type="button" onClick={() => setDropdownOpen(!dropdownOpen)}>
+              <Wallet size={18} />
+              {address?.slice(0, 6)}...{address?.slice(-4)}
+            </button>
+            {dropdownOpen && (
+              <div className="wallet-dropdown">
+                <div className="wallet-balance">
+                  <span>Available Balance</span>
+                  <strong>{balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} mUSDC</strong>
+                </div>
+                <button className="disconnect-button" type="button" onClick={() => disconnect()}>
+                  <LogOut size={16} />
+                  Disconnect Wallet
+                </button>
+              </div>
+            )}
+          </div>
         ) : (
           <button className="primary-button" type="button" onClick={() => connect({ connector: connectors[0] })} disabled={isPending}>
             <Wallet size={18} />

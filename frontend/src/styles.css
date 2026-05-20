@@ -967,3 +967,85 @@ h3 {
 .trade-row .negative.pnl-live {
   color: #f87171;
 }
+
+/* ── Wallet Dropdown ──────────────────────────────────── */
+
+.wallet-dropdown-container {
+  position: relative;
+}
+
+.wallet-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 240px;
+  background: rgba(8, 13, 24, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 12px;
+  padding: 8px;
+  backdrop-filter: blur(20px);
+  z-index: 100;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.wallet-balance {
+  padding: 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  margin-bottom: 8px;
+}
+
+.wallet-balance span {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.wallet-balance strong {
+  font-size: 1.1rem;
+  color: #f8fafc;
+}
+
+.disconnect-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: transparent;
+  border: 0;
+  color: #f87171;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.disconnect-button:hover {
+  background: rgba(248, 113, 113, 0.1);
+}
+
+/* button-group in allocation-band */
+.button-group {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+

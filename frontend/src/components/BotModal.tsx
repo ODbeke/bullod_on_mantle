@@ -12,9 +12,10 @@ type Props = {
   userTrades: OnChainTrade[];
   onClose: () => void;
   onActivate: (botId: number, amount: number) => void;
+  onDeallocate: (botId: number, amount: number) => void;
 };
 
-export function BotModal({ bot, active, botAllocation, userTrades, onClose, onActivate }: Props) {
+export function BotModal({ bot, active, botAllocation, userTrades, onClose, onActivate, onDeallocate }: Props) {
   const [amount, setAmount] = useState("500");
   const [tab, setTab] = useState<"trades" | "history">("trades");
 
@@ -59,10 +60,17 @@ export function BotModal({ bot, active, botAllocation, userTrades, onClose, onAc
                   <strong>mUSDC</strong>
                 </div>
               </label>
-              <button className="primary-button" type="button" onClick={() => onActivate(bot.id, Number(amount) || 0)}>
-                <Play size={18} />
-                {active ? "Update bot" : "Start bot"}
-              </button>
+              <div className="button-group">
+                {active && (
+                  <button className="secondary-button" type="button" onClick={() => onDeallocate(bot.id, botAllocation)}>
+                    Withdraw all
+                  </button>
+                )}
+                <button className="primary-button" type="button" onClick={() => onActivate(bot.id, Number(amount) || 0)}>
+                  <Play size={18} />
+                  {active ? "Update bot" : "Start bot"}
+                </button>
+              </div>
             </div>
 
             {active && (
