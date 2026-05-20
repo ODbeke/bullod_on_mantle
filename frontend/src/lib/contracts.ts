@@ -25,6 +25,13 @@ const usdcAbi = [
     inputs: [{ name: "account", type: "address" }],
     outputs: [{ name: "", type: "uint256" }],
   },
+  {
+    type: "function",
+    name: "allowance",
+    stateMutability: "view",
+    inputs: [{ name: "owner", type: "address" }, { name: "spender", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
+  },
 ] as const;
 
 const vaultAbi = [
@@ -144,21 +151,43 @@ export async function depositAndAllocate(account: Address, botId: number, amount
   const client = walletClient(account);
   await client.switchChain({ id: mantleSepolia.id });
 
-  const approveHash = await client.writeContract({
-    address: MOCK_USDC_ADDRESS,
-    abi: usdcAbi,
-    functionName: "approve",
-    args: [TRADING_VAULT_ADDRESS, units],
-  });
-  await publicClient.waitForTransactionReceipt({ hash: approveHash });
+  const [allowance, availableBalance] = await Promise.all([
+    publicClient.readContract({
+      address: MOCK_USDC_ADDRESS,
+      abi: usdcAbi,
+      functionName: "allowance",
+      args: [account, TRADING_VAULT_ADDRESS],
+    }) as Promise<bigint>,
+    publicClient.readContract({
+      address: TRADING_VAULT_ADDRESS,
+      abi: vaultAbi,
+      functionName: "availableBalance",
+      args: [account],
+    }) as Promise<bigint>,
+  ]);
 
-  const depositHash = await client.writeContract({
-    address: TRADING_VAULT_ADDRESS,
-    abi: vaultAbi,
-    functionName: "deposit",
-    args: [units],
-  });
-  await publicClient.waitForTransactionReceipt({ hash: depositHash });
+  const depositNeeded = units > availableBalance ? units - availableBalance : 0n;
+
+  if (depositNeeded > 0n) {
+    if (allowance < depositNeeded) {
+      const approveHash = await client.writeContract({
+        address: MOCK_USDC_ADDRESS,
+        abi: usdcAbi,
+        functionName: "approve",
+        // Max uint256 so we don't have to approve again
+        args: [TRADING_VAULT_ADDRESS, 115792089237316195423570985008687907853269984665640564039457584007913129639935n],
+      });
+      await publicClient.waitForTransactionReceipt({ hash: approveHash });
+    }
+
+    const depositHash = await client.writeContract({
+      address: TRADING_VAULT_ADDRESS,
+      abi: vaultAbi,
+      functionName: "deposit",
+      args: [depositNeeded],
+    });
+    await publicClient.waitForTransactionReceipt({ hash: depositHash });
+  }
 
   const allocateHash = await client.writeContract({
     address: TRADING_VAULT_ADDRESS,
