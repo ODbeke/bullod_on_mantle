@@ -13,7 +13,7 @@ const COLORS: Record<string, string> = {
 
 const SYMBOLS = Object.keys(COLORS) as Array<keyof typeof COLORS>;
 
-const FALLBACK_PRICES = { BTC: 76426, ETH: 2107, SOL: 84.18, MNT: 0.0473 };
+const FALLBACK_PRICES = { BTC: 76426, ETH: 2107, SOL: 84.18, MNT: 0.6256 };
 
 export interface DataPoint {
   time: string;
@@ -30,16 +30,44 @@ export interface DataPoint {
 /* ── Data helpers ───────────────────────────────────────── */
 
 const fetchPrices = async () => {
+  // Try CoinGecko first (highly reliable free tier)
   try {
     const res = await fetch(
-      "https://min-api.cryptocompare.com/data/pricemulti?fsyms=BTC,ETH,SOL,MNT&tsyms=USD",
+      "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,mantle&vs_currencies=usd"
     );
-    const json = await res.json();
-    if (json?.BTC && json?.ETH && json?.SOL && json?.MNT) {
-      return { BTC: json.BTC.USD, ETH: json.ETH.USD, SOL: json.SOL.USD, MNT: json.MNT.USD };
+    if (res.ok) {
+      const data = await res.json();
+      if (data.bitcoin?.usd && data.ethereum?.usd && data.solana?.usd && data.mantle?.usd) {
+        return {
+          BTC: data.bitcoin.usd,
+          ETH: data.ethereum.usd,
+          SOL: data.solana.usd,
+          MNT: data.mantle.usd,
+        };
+      }
     }
   } catch (e) {
-    console.error("Failed to fetch live prices", e);
+    // Fallback to CryptoCompare
+  }
+
+  // Fallback: CryptoCompare (with mapping MNT -> MANTLE)
+  try {
+    const res = await fetch(
+      "https://min-api.cryptocompare.com/data/pricemulti?fsyms=BTC,ETH,SOL,MANTLE&tsyms=USD"
+    );
+    if (res.ok) {
+      const json = await res.json();
+      if (json.BTC?.USD && json.ETH?.USD && json.SOL?.USD && json.MANTLE?.USD) {
+        return {
+          BTC: json.BTC.USD,
+          ETH: json.ETH.USD,
+          SOL: json.SOL.USD,
+          MNT: json.MANTLE.USD,
+        };
+      }
+    }
+  } catch (e) {
+    console.error("Failed to fetch live prices from both feeds", e);
   }
   return null;
 };
