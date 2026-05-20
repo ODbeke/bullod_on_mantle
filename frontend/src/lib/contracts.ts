@@ -227,7 +227,6 @@ export async function fetchUserVaultData(account: Address): Promise<UserVaultDat
     const val = Number(formatUnits(allocationResults[idx], 6));
     allocations[botId] = val;
     totalAllocated += val;
-    if (val > 0) activeBotCount++;
   });
 
   // Fetch user trade IDs
@@ -279,6 +278,12 @@ export async function fetchUserVaultData(account: Address): Promise<UserVaultDat
           status,
         };
       });
+
+      const botsWithOpenTrades = new Set<number>();
+      trades.forEach((t) => {
+        if (t.status === "open") botsWithOpenTrades.add(t.botId);
+      });
+      activeBotCount = botsWithOpenTrades.size;
     }
   } catch {
     // getUserTrades may revert for new users — treat as empty
