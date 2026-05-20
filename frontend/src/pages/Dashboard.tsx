@@ -134,7 +134,12 @@ export function Dashboard() {
         </div>
         <div className="bot-grid">
           {bots.map((bot) => (
-            <BotCard key={bot.id} bot={bot} active={(userData.allocations[bot.id] ?? 0) > 0} onOpen={setSelectedBot} />
+            <BotCard
+              key={bot.id}
+              bot={bot}
+              active={userData.trades.some((t) => t.botId === bot.id && t.status === "open")}
+              onOpen={setSelectedBot}
+            />
           ))}
         </div>
       </section>
