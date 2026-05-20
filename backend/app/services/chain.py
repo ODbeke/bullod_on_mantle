@@ -43,6 +43,35 @@ VAULT_ABI = [
         "name": "BotAllocated",
         "type": "event",
     },
+    # TradeOpened event — used to get trade ID from receipt
+    {
+        "anonymous": False,
+        "inputs": [
+            {"indexed": True, "internalType": "uint256", "name": "tradeId", "type": "uint256"},
+            {"indexed": True, "internalType": "address", "name": "user", "type": "address"},
+            {"indexed": True, "internalType": "uint8", "name": "botId", "type": "uint8"},
+            {"indexed": False, "internalType": "string", "name": "symbol", "type": "string"},
+            {"indexed": False, "internalType": "bool", "name": "isLong", "type": "bool"},
+            {"indexed": False, "internalType": "uint256", "name": "collateral", "type": "uint256"},
+            {"indexed": False, "internalType": "uint256", "name": "entryPrice", "type": "uint256"},
+        ],
+        "name": "TradeOpened",
+        "type": "event",
+    },
+    # TradeClosed event — used to confirm close
+    {
+        "anonymous": False,
+        "inputs": [
+            {"indexed": True, "internalType": "uint256", "name": "tradeId", "type": "uint256"},
+            {"indexed": True, "internalType": "address", "name": "user", "type": "address"},
+            {"indexed": True, "internalType": "uint8", "name": "botId", "type": "uint8"},
+            {"indexed": False, "internalType": "uint256", "name": "exitPrice", "type": "uint256"},
+            {"indexed": False, "internalType": "int256", "name": "pnl", "type": "int256"},
+            {"indexed": False, "internalType": "uint64", "name": "closedAt", "type": "uint64"},
+        ],
+        "name": "TradeClosed",
+        "type": "event",
+    },
 ]
 
 BOT_IDS = (1, 2, 3, 4, 5)
@@ -76,7 +105,12 @@ class ChainRecorder:
 
         try:
             current_block = await self.web3.eth.block_number
-            from_block = max(self._last_scanned_block + 1, 0) if self._last_scanned_block else 0
+
+            if self._last_scanned_block:
+                from_block = self._last_scanned_block + 1
+            else:
+                # On first scan, only look at recent blocks (last ~200K ≈ a few days)
+                from_block = max(0, current_block - 200_000)
 
             if from_block > current_block:
                 return self._known_users
@@ -86,17 +120,20 @@ class ChainRecorder:
             scan_from = from_block
             while scan_from <= current_block:
                 scan_to = min(scan_from + chunk_size, current_block)
-                logs = await self.contract.events.BotAllocated().get_logs(
-                    from_block=scan_from,
-                    to_block=scan_to,
-                )
-                for log in logs:
-                    user_address = log["args"]["user"]
-                    self._known_users.add(user_address.lower())
+                try:
+                    logs = await self.contract.events.BotAllocated().get_logs(
+                        from_block=scan_from,
+                        to_block=scan_to,
+                    )
+                    for log in logs:
+                        user_address = log["args"]["user"]
+                        self._known_users.add(user_address.lower())
+                except Exception as chunk_err:
+                    logger.debug("Chunk %d-%d scan error: %s", scan_from, scan_to, chunk_err)
                 scan_from = scan_to + 1
 
             self._last_scanned_block = current_block
-            logger.info("Discovered %d users with allocations", len(self._known_users))
+            logger.info("Discovered %d users with allocations (scanned blocks %d → %d)", len(self._known_users), from_block, current_block)
         except Exception as exc:
             logger.warning("Event scan failed, using cached user list: %s", exc)
 

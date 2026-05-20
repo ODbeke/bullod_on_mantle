@@ -41,13 +41,24 @@ class BotEngine:
         self._active_users: set[str] = set()
 
     async def start(self) -> None:
-        await self.notifier.start()
+        try:
+            await self.notifier.start()
+        except Exception as exc:
+            logger.warning("Telegram bot unavailable, continuing without notifications: %s", exc)
         try:
             await self.repository.connect()
         except Exception as exc:
             logger.warning("Database unavailable, continuing without DB indexing: %s", exc)
 
-        logger.info("Engine starting — streaming live market data...")
+        logger.info("Engine starting — discovering on-chain users...")
+        self._active_users = await self.chain.discover_users()
+        self._last_user_discovery = time()
+        if self._active_users:
+            logger.info("Found %d user(s) with allocations: %s", len(self._active_users), [u[:10] + "..." for u in self._active_users])
+        else:
+            logger.warning("No users with allocations found yet. Users will be discovered as they allocate.")
+
+        logger.info("Streaming live market data...")
 
         async for symbol, candles in self.market.stream():
             price = candles[-1].close
@@ -57,6 +68,10 @@ class BotEngine:
             if now - self._last_user_discovery > USER_DISCOVERY_INTERVAL:
                 self._active_users = await self.chain.discover_users()
                 self._last_user_discovery = now
+                if self._active_users:
+                    logger.info("Active users with allocations: %s", [u[:10] + "..." for u in self._active_users])
+                else:
+                    logger.info("No users with allocations found on-chain yet")
 
             # Check open positions for TP/SL
             await self._check_positions(symbol, price)
@@ -64,8 +79,16 @@ class BotEngine:
             # Evaluate strategies and generate signals
             for strategy in STRATEGIES:
                 signal = strategy.evaluate(symbol, candles)
-                if signal and self._cooldown_ok(signal):
-                    await self._handle_signal_for_all_users(signal)
+                if signal:
+                    if self._cooldown_ok(signal):
+                        logger.info(
+                            "SIGNAL: %s (%s) → %s %s at $%.2f | reason: %s",
+                            strategy.bot_name, strategy.__class__.__name__,
+                            signal.side.upper(), symbol, signal.price, signal.reason,
+                        )
+                        await self._handle_signal_for_all_users(signal)
+                    else:
+                        logger.debug("Signal from %s skipped (cooldown active)", strategy.bot_name)
 
     def _cooldown_ok(self, signal: Signal) -> bool:
         """Enforce timeframe-based cooldown per (bot_id, symbol)."""
