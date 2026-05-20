@@ -8,7 +8,7 @@ import { contractsConfigured, depositAndAllocate, mintMockUsdc } from "../lib/co
 import { bots, type Bot } from "../lib/bots";
 
 export function Dashboard() {
-  const { address } = useAccount();
+  const { address, isConnected } = useAccount();
   const [selectedBot, setSelectedBot] = useState<Bot | null>(null);
   const [allocations, setAllocations] = useState<Record<number, number>>({ 1: 750, 3: 1200 });
   const [status, setStatus] = useState(
@@ -84,9 +84,23 @@ export function Dashboard() {
       <div className="background-grid" />
       <WalletBar onMint={handleMint} />
       <section className="overview">
-        <div>
-          <span className="eyebrow">AI vault operations</span>
-          <h2>{activeCount} bots live, ${totalAllocation.toLocaleString()} mUSDC allocated</h2>
+        <div className="operations-info">
+          <span className="eyebrow">operations</span>
+          {isConnected ? (
+            <div className="stats-pill-container">
+              <div className="stats-pill">
+                <span className="pulse-dot" aria-hidden="true" />
+                <strong>{activeCount} bots live</strong>
+              </div>
+              <div className="stats-pill">
+                <strong>${totalAllocation.toLocaleString()} mUSDC allocated</strong>
+              </div>
+            </div>
+          ) : (
+            <div className="stats-fallback">
+              Please connect your wallet to view active bots and allocation stats.
+            </div>
+          )}
           <p className="status-line">{status}</p>
         </div>
         <div className="metric-row">
