@@ -149,8 +149,9 @@ class BotEngine:
         if trade_id is None:
             trade_id = int(time() * 1000)
 
-        tp_multiplier = 1.018 if signal.side == Side.LONG else 0.982
-        sl_multiplier = 0.991 if signal.side == Side.LONG else 1.009
+        tp_multiplier = 1.035 if signal.side == Side.LONG else 0.965
+        sl_multiplier = 0.985 if signal.side == Side.LONG else 1.015
+        leverage = 10.0
         position = Position(
             trade_id=trade_id,
             user=user,
@@ -163,6 +164,7 @@ class BotEngine:
             opened_at=int(time()),
             take_profit=signal.price * tp_multiplier,
             stop_loss=signal.price * sl_multiplier,
+            leverage=leverage,
         )
         self.positions[key] = position
         try:

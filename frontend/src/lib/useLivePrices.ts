@@ -43,14 +43,16 @@ export function useLivePrices(symbols: string[]) {
 
 /**
  * Calculate unrealized PnL for an open trade given live price.
+ * Leverage defaults to 10× to match the backend engine.
  */
 export function calcUnrealizedPnl(
   entryPrice: number,
   currentPrice: number,
   collateral: number,
   isLong: boolean,
+  leverage = 10,
 ): number {
   if (entryPrice === 0) return 0;
   const move = (currentPrice - entryPrice) / entryPrice;
-  return collateral * (isLong ? move : -move);
+  return collateral * (isLong ? move : -move) * leverage;
 }

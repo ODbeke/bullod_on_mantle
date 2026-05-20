@@ -45,12 +45,13 @@ class Position:
     opened_at: int
     take_profit: float
     stop_loss: float
+    leverage: float = 10.0
 
     def pnl(self, price: float) -> float:
         move = (price - self.entry_price) / self.entry_price
         if self.side == Side.SHORT:
             move *= -1
-        return self.collateral * move
+        return self.collateral * move * self.leverage
 
     def should_close(self, price: float) -> bool:
         if self.side == Side.LONG:
