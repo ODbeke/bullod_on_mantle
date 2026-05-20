@@ -1,8 +1,10 @@
-import { createPublicClient, createWalletClient, custom, http, parseUnits, type Address } from "viem";
+import { createPublicClient, createWalletClient, custom, http, parseUnits, formatUnits, type Address } from "viem";
 import { mantleSepolia } from "./wagmi";
 
 export const MOCK_USDC_ADDRESS = import.meta.env.VITE_MOCK_USDC_ADDRESS as Address | undefined;
 export const TRADING_VAULT_ADDRESS = import.meta.env.VITE_TRADING_VAULT_ADDRESS as Address | undefined;
+
+/* ── ABIs ────────────────────────────────────────────── */
 
 const usdcAbi = [
   { type: "function", name: "faucet", stateMutability: "nonpayable", inputs: [], outputs: [] },
@@ -15,6 +17,13 @@ const usdcAbi = [
       { name: "amount", type: "uint256" },
     ],
     outputs: [{ name: "", type: "bool" }],
+  },
+  {
+    type: "function",
+    name: "balanceOf",
+    stateMutability: "view",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
   },
 ] as const;
 
@@ -30,7 +39,60 @@ const vaultAbi = [
     ],
     outputs: [],
   },
+  {
+    type: "function",
+    name: "availableBalance",
+    stateMutability: "view",
+    inputs: [{ name: "", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "botAllocation",
+    stateMutability: "view",
+    inputs: [
+      { name: "", type: "address" },
+      { name: "", type: "uint8" },
+    ],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "getUserTrades",
+    stateMutability: "view",
+    inputs: [{ name: "user", type: "address" }],
+    outputs: [{ name: "", type: "uint256[]" }],
+  },
+  {
+    type: "function",
+    name: "trades",
+    stateMutability: "view",
+    inputs: [{ name: "", type: "uint256" }],
+    outputs: [
+      { name: "id", type: "uint256" },
+      { name: "user", type: "address" },
+      { name: "botId", type: "uint8" },
+      { name: "symbol", type: "string" },
+      { name: "isLong", type: "bool" },
+      { name: "collateral", type: "uint256" },
+      { name: "entryPrice", type: "uint256" },
+      { name: "exitPrice", type: "uint256" },
+      { name: "pnl", type: "int256" },
+      { name: "openedAt", type: "uint64" },
+      { name: "closedAt", type: "uint64" },
+      { name: "status", type: "uint8" },
+    ],
+  },
+  {
+    type: "function",
+    name: "nextTradeId",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256" }],
+  },
 ] as const;
+
+/* ── Clients ──────────────────────────────────────────── */
 
 const publicClient = createPublicClient({
   chain: mantleSepolia,
@@ -51,6 +113,8 @@ function walletClient(account: Address) {
 export function contractsConfigured() {
   return Boolean(MOCK_USDC_ADDRESS && TRADING_VAULT_ADDRESS);
 }
+
+/* ── Write operations ─────────────────────────────────── */
 
 export async function mintMockUsdc(account: Address) {
   if (!MOCK_USDC_ADDRESS) throw new Error("VITE_MOCK_USDC_ADDRESS is not configured");
@@ -94,4 +158,155 @@ export async function depositAndAllocate(account: Address, botId: number, amount
   await publicClient.waitForTransactionReceipt({ hash: allocateHash });
 
   return allocateHash;
+}
+
+/* ── Read operations ──────────────────────────────────── */
+
+export interface OnChainTrade {
+  id: number;
+  user: string;
+  botId: number;
+  symbol: string;
+  isLong: boolean;
+  collateral: number;
+  entryPrice: number;
+  exitPrice: number;
+  pnl: number;
+  openedAt: number;
+  closedAt: number;
+  status: "open" | "closed";
+}
+
+export interface UserVaultData {
+  availableBalance: number;
+  allocations: Record<number, number>;
+  activeBotCount: number;
+  totalAllocated: number;
+  trades: OnChainTrade[];
+  totalPnl: number;
+  openTradeCount: number;
+  closedTradeCount: number;
+}
+
+export interface GlobalVaultData {
+  totalVaultBalance: number;
+  totalTradeCount: number;
+}
+
+const BOT_IDS = [1, 2, 3, 4, 5] as const;
+
+export async function fetchUserVaultData(account: Address): Promise<UserVaultData> {
+  if (!TRADING_VAULT_ADDRESS) {
+    return { availableBalance: 0, allocations: {}, activeBotCount: 0, totalAllocated: 0, trades: [], totalPnl: 0, openTradeCount: 0, closedTradeCount: 0 };
+  }
+
+  // Fetch available balance + all 5 bot allocations in parallel
+  const [balanceRaw, ...allocationResults] = await Promise.all([
+    publicClient.readContract({
+      address: TRADING_VAULT_ADDRESS,
+      abi: vaultAbi,
+      functionName: "availableBalance",
+      args: [account],
+    }),
+    ...BOT_IDS.map((botId) =>
+      publicClient.readContract({
+        address: TRADING_VAULT_ADDRESS,
+        abi: vaultAbi,
+        functionName: "botAllocation",
+        args: [account, botId],
+      }),
+    ),
+  ]);
+
+  const availableBalance = Number(formatUnits(balanceRaw, 6));
+  const allocations: Record<number, number> = {};
+  let totalAllocated = 0;
+  let activeBotCount = 0;
+
+  BOT_IDS.forEach((botId, idx) => {
+    const val = Number(formatUnits(allocationResults[idx], 6));
+    allocations[botId] = val;
+    totalAllocated += val;
+    if (val > 0) activeBotCount++;
+  });
+
+  // Fetch user trade IDs
+  let trades: OnChainTrade[] = [];
+  let totalPnl = 0;
+  let openTradeCount = 0;
+  let closedTradeCount = 0;
+
+  try {
+    const tradeIds = await publicClient.readContract({
+      address: TRADING_VAULT_ADDRESS,
+      abi: vaultAbi,
+      functionName: "getUserTrades",
+      args: [account],
+    });
+
+    if (tradeIds.length > 0) {
+      const tradeResults = await Promise.all(
+        tradeIds.map((tid) =>
+          publicClient.readContract({
+            address: TRADING_VAULT_ADDRESS!,
+            abi: vaultAbi,
+            functionName: "trades",
+            args: [tid],
+          }),
+        ),
+      );
+
+      trades = tradeResults.map((t) => {
+        const status = Number(t[11]) === 0 ? "open" as const : "closed" as const;
+        const pnl = Number(formatUnits(t[8] < 0n ? t[8] : t[8], 6));
+        if (status === "open") openTradeCount++;
+        else closedTradeCount++;
+        totalPnl += pnl;
+
+        return {
+          id: Number(t[0]),
+          user: t[1],
+          botId: Number(t[2]),
+          symbol: t[3],
+          isLong: t[4],
+          collateral: Number(formatUnits(t[5], 6)),
+          entryPrice: Number(formatUnits(t[6], 6)),
+          exitPrice: Number(formatUnits(t[7], 6)),
+          pnl,
+          openedAt: Number(t[9]),
+          closedAt: Number(t[10]),
+          status,
+        };
+      });
+    }
+  } catch {
+    // getUserTrades may revert for new users — treat as empty
+  }
+
+  return { availableBalance, allocations, activeBotCount, totalAllocated, trades, totalPnl, openTradeCount, closedTradeCount };
+}
+
+export async function fetchGlobalVaultData(): Promise<GlobalVaultData> {
+  if (!TRADING_VAULT_ADDRESS || !MOCK_USDC_ADDRESS) {
+    return { totalVaultBalance: 0, totalTradeCount: 0 };
+  }
+
+  const [vaultBalanceRaw, nextTradeIdRaw] = await Promise.all([
+    publicClient.readContract({
+      address: MOCK_USDC_ADDRESS,
+      abi: usdcAbi,
+      functionName: "balanceOf",
+      args: [TRADING_VAULT_ADDRESS],
+    }),
+    publicClient.readContract({
+      address: TRADING_VAULT_ADDRESS,
+      abi: vaultAbi,
+      functionName: "nextTradeId",
+    }),
+  ]);
+
+  return {
+    totalVaultBalance: Number(formatUnits(vaultBalanceRaw, 6)),
+    totalTradeCount: Math.max(0, Number(nextTradeIdRaw) - 1),
+  };
 }
