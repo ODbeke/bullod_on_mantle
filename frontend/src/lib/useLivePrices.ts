@@ -1,127 +1,41 @@
 import { useEffect, useState } from "react";
+import { subscribePrices } from "./priceStore";
 
-const COINGECKO_MAP: Record<string, string> = {
-  BTC: "bitcoin",
-  ETH: "ethereum",
-  SOL: "solana",
-  MNT: "mantle",
-};
-
-// Maps on-chain symbols (e.g., "BTC/USDT", "BTCUSDT", "mnt/usdt") to base symbols (e.g. "BTC") case-insensitively
+/**
+ * Maps on-chain trade symbols ("BTC/USDT", "ETHUSDT", etc.) to base tickers ("BTC").
+ */
 function toBaseSymbol(symbol: string): string {
   if (!symbol) return "";
   return symbol.toUpperCase().replace("/USDT", "").replace("USDT", "").trim();
 }
 
-// Maps standard symbols to Bybit Spot tickers (e.g. "BTC/USDT" -> "BTCUSDT")
-function toBybitSymbol(symbol: string): string {
-  const base = toBaseSymbol(symbol);
-  return `${base}USDT`;
-}
-
-const POLL_INTERVAL = 5_000; // 5 seconds
-
+/**
+ * React hook that returns live USD prices keyed by the exact on-chain symbol
+ * string (e.g. "BTC/USDT" → 76500).
+ *
+ * Internally subscribes to the singleton priceStore so there is only ever
+ * ONE network polling loop for the entire app.
+ */
 export function useLivePrices(symbols: string[]) {
   const [prices, setPrices] = useState<Record<string, number>>({});
 
   useEffect(() => {
     if (symbols.length === 0) return;
 
-    const baseSymbols = [...new Set(symbols.map(toBaseSymbol))];
-    
-    // Construct CoinGecko ids parameter
-    const geckoIds = baseSymbols
-      .map(sym => COINGECKO_MAP[sym])
-      .filter(Boolean)
-      .join(",");
-
-    // Fallback CryptoCompare parameters
-    const ccFsyms = baseSymbols
-      .map(sym => (sym === "MNT" ? "MANTLE" : sym))
-      .join(",");
-
-    async function fetchPrices() {
-      // ─── PRIMARY: Bybit Spot Tickers (Zero rate-limit blocks, matches active trading) ───
-      try {
-        const res = await fetch("https://api.bybit.com/v5/market/tickers?category=spot");
-        if (res.ok) {
-          const json = await res.json();
-          if (json.retCode === 0 && json.result?.list) {
-            const list = json.result.list;
-            const bybitPrices: Record<string, number> = {};
-            for (const item of list) {
-              bybitPrices[item.symbol] = parseFloat(item.lastPrice);
-            }
-            const newPrices: Record<string, number> = {};
-            for (const sym of symbols) {
-              const bybitSym = toBybitSymbol(sym);
-              if (bybitPrices[bybitSym] !== undefined && !isNaN(bybitPrices[bybitSym])) {
-                newPrices[sym] = bybitPrices[bybitSym];
-              }
-            }
-            if (Object.keys(newPrices).length > 0) {
-              setPrices(newPrices);
-              return; // Success!
-            }
-          }
+    const unsubscribe = subscribePrices((allPrices) => {
+      const mapped: Record<string, number> = {};
+      for (const sym of symbols) {
+        const base = toBaseSymbol(sym);
+        if (allPrices[base] !== undefined) {
+          mapped[sym] = allPrices[base];
         }
-      } catch (err) {
-        // Silently move to next fallback
       }
-
-      // ─── SECONDARY: CoinGecko (Highly reliable free tier) ───
-      try {
-        if (geckoIds) {
-          const url = `https://api.coingecko.com/api/v3/simple/price?ids=${geckoIds}&vs_currencies=usd`;
-          const res = await fetch(url);
-          if (res.ok) {
-            const data = await res.json();
-            const newPrices: Record<string, number> = {};
-            for (const sym of symbols) {
-              const base = toBaseSymbol(sym);
-              const geckoId = COINGECKO_MAP[base];
-              if (data[geckoId]?.usd !== undefined) {
-                newPrices[sym] = data[geckoId].usd;
-              }
-            }
-            if (Object.keys(newPrices).length > 0) {
-              setPrices(newPrices);
-              return; // Success!
-            }
-          }
-        }
-      } catch (err) {
-        // Silently move to next fallback
+      if (Object.keys(mapped).length > 0) {
+        setPrices(mapped);
       }
+    });
 
-      // ─── TERTIARY: CryptoCompare ───
-      try {
-        const url = `https://min-api.cryptocompare.com/data/pricemulti?fsyms=${ccFsyms}&tsyms=USD`;
-        const res = await fetch(url);
-        if (res.ok) {
-          const data = await res.json();
-          if (data.Response !== "Error") {
-            const newPrices: Record<string, number> = {};
-            for (const sym of symbols) {
-              const base = toBaseSymbol(sym);
-              const ccBase = base === "MNT" ? "MANTLE" : base;
-              if (data[ccBase]?.USD !== undefined) {
-                newPrices[sym] = data[ccBase].USD;
-              }
-            }
-            if (Object.keys(newPrices).length > 0) {
-              setPrices(newPrices);
-            }
-          }
-        }
-      } catch (err) {
-        // Silently retry on next interval
-      }
-    }
-
-    fetchPrices();
-    const id = setInterval(fetchPrices, POLL_INTERVAL);
-    return () => clearInterval(id);
+    return unsubscribe;
   }, [symbols.join(",")]);
 
   return prices;

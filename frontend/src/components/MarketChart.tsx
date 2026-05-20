@@ -3,6 +3,7 @@ import { Area, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip,
 import { ChartNoAxesCombined } from "lucide-react";
 import { ChartLegend } from "./ChartLegend";
 import { SparklineCard } from "./SparklineCard";
+import { subscribePrices } from "../lib/priceStore";
 
 const COLORS: Record<string, string> = {
   BTC: "#f59e0b",
@@ -28,77 +29,6 @@ export interface DataPoint {
 }
 
 /* ── Data helpers ───────────────────────────────────────── */
-
-const fetchPrices = async () => {
-  // 1. Try Bybit Spot Ticker API (CORS enabled, highly resilient, zero key rate limits)
-  try {
-    const res = await fetch("https://api.bybit.com/v5/market/tickers?category=spot");
-    if (res.ok) {
-      const json = await res.json();
-      if (json.retCode === 0 && json.result?.list) {
-        const list = json.result.list;
-        const prices: Record<string, number> = {};
-        for (const item of list) {
-          if (item.symbol === "BTCUSDT") prices.BTC = parseFloat(item.lastPrice);
-          if (item.symbol === "ETHUSDT") prices.ETH = parseFloat(item.lastPrice);
-          if (item.symbol === "SOLUSDT") prices.SOL = parseFloat(item.lastPrice);
-          if (item.symbol === "MNTUSDT") prices.MNT = parseFloat(item.lastPrice);
-        }
-        if (prices.BTC && prices.ETH && prices.SOL && prices.MNT) {
-          return {
-            BTC: prices.BTC,
-            ETH: prices.ETH,
-            SOL: prices.SOL,
-            MNT: prices.MNT,
-          };
-        }
-      }
-    }
-  } catch (e) {
-    // Fallback to CoinGecko
-  }
-
-  // 2. Try CoinGecko second (highly reliable free tier)
-  try {
-    const res = await fetch(
-      "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,mantle&vs_currencies=usd"
-    );
-    if (res.ok) {
-      const data = await res.json();
-      if (data.bitcoin?.usd && data.ethereum?.usd && data.solana?.usd && data.mantle?.usd) {
-        return {
-          BTC: data.bitcoin.usd,
-          ETH: data.ethereum.usd,
-          SOL: data.solana.usd,
-          MNT: data.mantle.usd,
-        };
-      }
-    }
-  } catch (e) {
-    // Fallback to CryptoCompare
-  }
-
-  // 3. Fallback: CryptoCompare (with mapping MNT -> MANTLE)
-  try {
-    const res = await fetch(
-      "https://min-api.cryptocompare.com/data/pricemulti?fsyms=BTC,ETH,SOL,MANTLE&tsyms=USD"
-    );
-    if (res.ok) {
-      const json = await res.json();
-      if (json.BTC?.USD && json.ETH?.USD && json.SOL?.USD && json.MANTLE?.USD) {
-        return {
-          BTC: json.BTC.USD,
-          ETH: json.ETH.USD,
-          SOL: json.SOL.USD,
-          MNT: json.MANTLE.USD,
-        };
-      }
-    }
-  } catch (e) {
-    console.error("Failed to fetch live prices from both feeds", e);
-  }
-  return null;
-};
 
 const generateHistory = (prices: typeof FALLBACK_PRICES): DataPoint[] => {
   const now = Date.now();
@@ -151,22 +81,21 @@ function ChartTooltip({ active, payload }: any) {
 
 export function MarketChart() {
   const [data, setData] = useState<DataPoint[]>(() => generateHistory(FALLBACK_PRICES));
+  const [initialised, setInitialised] = useState(false);
 
   useEffect(() => {
-    let active = true;
+    const unsubscribe = subscribePrices((live) => {
+      if (!initialised) {
+        // First real price tick → regenerate history with real prices
+        setData(generateHistory(live as typeof FALLBACK_PRICES));
+        setInitialised(true);
+        return;
+      }
 
-    (async () => {
-      const live = await fetchPrices();
-      if (live && active) setData(generateHistory(live));
-    })();
-
-    const timer = window.setInterval(async () => {
-      const live = await fetchPrices();
-      if (!live || !active) return;
-
+      // Subsequent ticks → append a new data point
       setData((current) => {
         const base = current[0];
-        const norm = (v: number, b: number) => (v / b) * 100;
+        const norm = (v: number, b: number) => (b ? (v / b) * 100 : 100);
         const next: DataPoint = {
           time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
           BTC: norm(live.BTC, base.rawBTC),
@@ -180,13 +109,10 @@ export function MarketChart() {
         };
         return [...current.slice(1), next];
       });
-    }, 5000);
+    });
 
-    return () => {
-      active = false;
-      window.clearInterval(timer);
-    };
-  }, []);
+    return unsubscribe;
+  }, [initialised]);
 
   const latestPoint = useMemo(() => data[data.length - 1], [data]);
 
