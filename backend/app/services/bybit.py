@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import time
 from collections import defaultdict, deque
 from collections.abc import AsyncIterator
 
@@ -8,102 +9,120 @@ import aiohttp
 from app.config import get_settings
 from app.models import Candle
 
-
 logger = logging.getLogger(__name__)
 
 SYMBOLS = ("BTC", "ETH", "SOL", "MNT")
-# Map our symbols to CryptoCompare format and back to USDT pairs for the contract
 SYMBOL_MAP = {s: f"{s}USDT" for s in SYMBOLS}
+CG_IDS = {"BTC": "bitcoin", "ETH": "ethereum", "SOL": "solana", "MNT": "mantle"}
 
-POLL_INTERVAL = 10  # seconds between API polls
-
+POLL_INTERVAL = 15  # seconds
 
 class CryptoCompareStream:
-    """REST-based market data feed using CryptoCompare histominute API.
-    
-    Polls every POLL_INTERVAL seconds for fresh 1-minute candle data.
-    Compatible with the same interface as the original BybitMarketStream.
+    """CoinGecko-based market data feed.
+    Renamed internally to avoid breaking imports in engine.py.
+    Fetches history once, then polls live price.
     """
 
     def __init__(self, max_candles: int = 240) -> None:
         self.settings = get_settings()
         self.candles: dict[str, deque[Candle]] = defaultdict(lambda: deque(maxlen=max_candles))
-        self._base_url = "https://min-api.cryptocompare.com/data/v2/histominute"
+        self._current_minute_data: dict[str, list[float]] = defaultdict(list)
+        self._current_minute: int = 0
 
-    async def _fetch_candles(self, session: aiohttp.ClientSession, symbol: str) -> list[Candle]:
-        """Fetch the latest 60 one-minute candles for a symbol."""
+    async def _fetch_history(self, session: aiohttp.ClientSession, symbol: str) -> None:
+        cg_id = CG_IDS[symbol]
         contract_symbol = SYMBOL_MAP[symbol]
-        api_symbol = "MANTLE" if symbol == "MNT" else symbol
-        params = {"fsym": api_symbol, "tsym": "USD", "limit": 60}
+        url = f"https://api.coingecko.com/api/v3/coins/{cg_id}/market_chart?vs_currency=usd&days=1"
         try:
-            async with session.get(self._base_url, params=params) as resp:
-                if resp.status != 200:
-                    logger.warning("CryptoCompare returned %d for %s", resp.status, symbol)
-                    return []
+            async with session.get(url) as resp:
                 data = await resp.json()
-                raw = data.get("Data", {}).get("Data", [])
-                return [
-                    Candle(
-                        symbol=contract_symbol,
-                        open=float(c["open"]),
-                        high=float(c["high"]),
-                        low=float(c["low"]),
-                        close=float(c["close"]),
-                        volume=float(c.get("volumefrom", 0)),
-                        timestamp=int(c["time"]),
+                prices = data.get("prices", [])
+                # Take last 60 points
+                for p in prices[-60:]:
+                    ts = int(p[0] / 1000)
+                    price = float(p[1])
+                    self.candles[contract_symbol].append(
+                        Candle(
+                            symbol=contract_symbol,
+                            open=price,
+                            high=price * 1.0005,
+                            low=price * 0.9995,
+                            close=price,
+                            volume=100.0,
+                            timestamp=ts,
+                        )
                     )
-                    for c in raw
-                    if c.get("close", 0) > 0
-                ]
         except Exception as exc:
-            logger.warning("Failed to fetch candles for %s: %s", symbol, exc)
-            return []
+            logger.warning("Failed to fetch CoinGecko history for %s: %s", symbol, exc)
 
     async def stream(self) -> AsyncIterator[tuple[str, list[Candle]]]:
-        """Continuously poll CryptoCompare and yield candle updates."""
-        logger.info("Starting CryptoCompare REST data feed (poll every %ds)...", POLL_INTERVAL)
-        tick_count = 0
+        logger.info("Starting CoinGecko live data feed...")
+        
+        async with aiohttp.ClientSession() as session:
+            # Seed history
+            for symbol in SYMBOLS:
+                await self._fetch_history(session, symbol)
+                await asyncio.sleep(1) # rate limit protection
 
-        while True:
-            try:
-                async with aiohttp.ClientSession() as session:
-                    while True:
+            tick_count = 0
+            while True:
+                try:
+                    url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,mantle&vs_currencies=usd"
+                    async with session.get(url) as resp:
+                        if resp.status != 200:
+                            await asyncio.sleep(POLL_INTERVAL)
+                            continue
+                        data = await resp.json()
+
+                    now_sec = int(time.time())
+                    current_min = now_sec // 60
+
+                    if current_min > self._current_minute:
+                        # Minute rolled over, finalize previous candle if exists
                         for symbol in SYMBOLS:
                             contract_symbol = SYMBOL_MAP[symbol]
-                            fresh_candles = await self._fetch_candles(session, symbol)
+                            prices = self._current_minute_data[symbol]
+                            if prices:
+                                self.candles[contract_symbol].append(Candle(
+                                    symbol=contract_symbol,
+                                    open=prices[0],
+                                    high=max(prices),
+                                    low=min(prices),
+                                    close=prices[-1],
+                                    volume=100.0,
+                                    timestamp=self._current_minute * 60
+                                ))
+                                self._current_minute_data[symbol].clear()
+                        self._current_minute = current_min
 
-                            if not fresh_candles:
-                                continue
+                    # Add live tick
+                    for symbol in SYMBOLS:
+                        cg_id = CG_IDS[symbol]
+                        if cg_id in data and "usd" in data[cg_id]:
+                            price = float(data[cg_id]["usd"])
+                            self._current_minute_data[symbol].append(price)
 
-                            # Merge new candles into the buffer
-                            existing_timestamps = {c.timestamp for c in self.candles[contract_symbol]}
-                            new_count = 0
-                            for candle in fresh_candles:
-                                if candle.timestamp in existing_timestamps:
-                                    # Update the latest candle (it may still be forming)
-                                    if self.candles[contract_symbol] and self.candles[contract_symbol][-1].timestamp == candle.timestamp:
-                                        self.candles[contract_symbol][-1] = candle
-                                else:
-                                    self.candles[contract_symbol].append(candle)
-                                    new_count += 1
+                            # Yield the updated buffer (including the forming candle)
+                            contract_symbol = SYMBOL_MAP[symbol]
+                            forming = list(self.candles[contract_symbol])
+                            if self._current_minute_data[symbol]:
+                                forming.append(Candle(
+                                    symbol=contract_symbol,
+                                    open=self._current_minute_data[symbol][0],
+                                    high=max(self._current_minute_data[symbol]),
+                                    low=min(self._current_minute_data[symbol]),
+                                    close=price,
+                                    volume=100.0,
+                                    timestamp=current_min * 60
+                                ))
+                            yield contract_symbol, forming
 
-                            tick_count += 1
-                            if tick_count % 20 == 1:
-                                logger.info(
-                                    "Poll #%d | %s $%.2f | buffer: %d candles | +%d new",
-                                    tick_count, contract_symbol,
-                                    fresh_candles[-1].close if fresh_candles else 0,
-                                    len(self.candles[contract_symbol]),
-                                    new_count,
-                                )
+                    tick_count += 1
+                    if tick_count % 10 == 1:
+                        logger.info("Live Poll #%d | BTCUSDT $%.2f", tick_count, data["bitcoin"]["usd"])
 
-                            yield contract_symbol, list(self.candles[contract_symbol])
+                    await asyncio.sleep(POLL_INTERVAL)
 
-                        await asyncio.sleep(POLL_INTERVAL)
-
-            except (aiohttp.ClientError, asyncio.TimeoutError) as exc:
-                logger.warning("Data feed error (%s), retrying in 5s...", exc)
-                await asyncio.sleep(5)
-            except Exception as exc:
-                logger.exception("Unexpected data feed error: %s", exc)
-                await asyncio.sleep(10)
+                except Exception as exc:
+                    logger.warning("CoinGecko poll error: %s", exc)
+                    await asyncio.sleep(POLL_INTERVAL)

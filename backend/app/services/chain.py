@@ -6,7 +6,7 @@ from web3 import AsyncWeb3
 from web3.providers.rpc import AsyncHTTPProvider
 
 from app.config import get_settings
-from app.models import Signal
+from app.models import Signal, Position, Side
 
 logger = logging.getLogger(__name__)
 
@@ -81,10 +81,24 @@ class ChainRecorder:
     def __init__(self) -> None:
         self.settings = get_settings()
         self.web3 = AsyncWeb3(AsyncHTTPProvider(self.settings.mantle_sepolia_rpc_url))
+        import json
         self.contract = None
         self.account = Account.from_key(self.settings.trade_recorder_private_key) if self.settings.trade_recorder_private_key else None
         if self.settings.trading_vault_address:
-            self.contract = self.web3.eth.contract(address=AsyncWeb3.to_checksum_address(self.settings.trading_vault_address), abi=VAULT_ABI)
+            try:
+                with open(abi_path()) as f:
+                    abi = json.load(f)["abi"]
+                self.contract = self.web3.eth.contract(
+                    address=AsyncWeb3.to_checksum_address(self.settings.trading_vault_address),
+                    abi=abi
+                )
+            except Exception as e:
+                logger.error("Failed to load full vault ABI: %s", e)
+                # Fallback to hardcoded if json missing
+                self.contract = self.web3.eth.contract(
+                    address=AsyncWeb3.to_checksum_address(self.settings.trading_vault_address),
+                    abi=VAULT_ABI
+                )
         self._known_users: set[str] = set()
         self._last_scanned_block: int = 0
 
@@ -149,6 +163,63 @@ class ChainRecorder:
                 active.append(user)
         return active
 
+    async def sync_open_positions(self) -> dict[tuple[str, int, str], Position]:
+        """Fetch all currently open positions from the smart contract."""
+        positions = {}
+        if not self.contract:
+            return positions
+
+        users = await self.discover_users()
+        logger.info("Syncing open positions for %d users...", len(users))
+        import asyncio
+        for user in users:
+            try:
+                tids = await self.contract.functions.getUserTrades(AsyncWeb3.to_checksum_address(user)).call()
+                # Fetch trades concurrently in chunks to avoid rate limits
+                chunk_size = 5
+                for i in range(0, len(tids), chunk_size):
+                    chunk = tids[i:i + chunk_size]
+                    tasks = [self.contract.functions.trades(tid).call() for tid in chunk]
+                    try:
+                        results = await asyncio.wait_for(asyncio.gather(*tasks, return_exceptions=True), timeout=10)
+                    except asyncio.TimeoutError:
+                        logger.warning("Timeout syncing trades for chunk %s", chunk)
+                        continue
+                    
+                    for tid, t in zip(chunk, results):
+                        if isinstance(t, Exception):
+                            continue
+                        if t[11] == 0:  # TradeStatus.Open
+                            symbol = t[3].replace("/", "")
+                            is_long = t[4]
+                            entry_price = t[6] / 10**8
+                            collateral = t[5] / 10**6
+                            side = Side.LONG if is_long else Side.SHORT
+                            
+                            tp_multiplier = 1.035 if side == Side.LONG else 0.965
+                            sl_multiplier = 0.985 if side == Side.LONG else 1.015
+
+                            pos = Position(
+                                trade_id=tid,
+                                user=user.lower(),
+                                bot_id=t[2],
+                                bot_name=f"Bot {t[2]}",
+                                symbol=symbol,
+                                side=side,
+                                collateral=collateral,
+                                entry_price=entry_price,
+                                opened_at=t[9],
+                                take_profit=entry_price * tp_multiplier,
+                                stop_loss=entry_price * sl_multiplier,
+                            )
+                            key = (user.lower(), t[2], symbol)
+                            positions[key] = pos
+            except Exception as e:
+                logger.warning("Failed to sync positions for %s: %s", user, e)
+                
+        logger.info("Synced %d open positions from chain.", len(positions))
+        return positions
+
     # ── Read operations ───────────────────────────────────
 
     async def bot_allocation(self, user: str, bot_id: int) -> int:
@@ -191,4 +262,4 @@ class ChainRecorder:
 
 
 def abi_path() -> Path:
-    return Path(__file__).resolve().parents[3] / "contracts" / "artifacts" / "contracts" / "TradingVault.sol" / "TradingVault.json"
+    return Path(__file__).resolve().parents[3] / "contracts" / "artifacts" / "contracts" / "contracts" / "TradingVault.sol" / "TradingVault.json"

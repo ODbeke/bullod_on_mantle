@@ -319,16 +319,22 @@ export async function fetchUserVaultData(account: Address): Promise<UserVaultDat
     });
 
     if (tradeIds.length > 0) {
-      const tradeResults = await Promise.all(
-        tradeIds.map((tid) =>
-          publicClient.readContract({
-            address: TRADING_VAULT_ADDRESS!,
-            abi: vaultAbi,
-            functionName: "trades",
-            args: [tid],
-          }),
-        ),
-      );
+      const tradeResults = [];
+      const CHUNK_SIZE = 5;
+      for (let i = 0; i < tradeIds.length; i += CHUNK_SIZE) {
+        const chunk = tradeIds.slice(i, i + CHUNK_SIZE);
+        const results = await Promise.all(
+          chunk.map((tid) =>
+            publicClient.readContract({
+              address: TRADING_VAULT_ADDRESS!,
+              abi: vaultAbi,
+              functionName: "trades",
+              args: [tid],
+            }),
+          ),
+        );
+        tradeResults.push(...results);
+      }
 
       trades = tradeResults.map((t) => {
         const status = Number(t[11]) === 0 ? "open" as const : "closed" as const;
@@ -360,7 +366,8 @@ export async function fetchUserVaultData(account: Address): Promise<UserVaultDat
       });
       activeBotCount = botsWithOpenTrades.size;
     }
-  } catch {
+  } catch (err) {
+    console.error("Failed to fetch user trades:", err);
     // getUserTrades may revert for new users — treat as empty
   }
 

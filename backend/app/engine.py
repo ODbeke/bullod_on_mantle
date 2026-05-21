@@ -15,11 +15,11 @@ logger = logging.getLogger(__name__)
 # Minimum seconds between signals per (bot_id, symbol) — prevents overtrading.
 # Intraday bots (1, 2) → 15 min cooldown, Daily bots (3, 4, 5) → 4 hour cooldown.
 SIGNAL_COOLDOWNS: dict[int, int] = {
-    1: 15 * 60,      # Finn (Momentum / Intraday) — 15 min
-    2: 15 * 60,      # Tycoon (Trend / Intraday)  — 15 min
-    3: 4 * 60 * 60,  # Puff (Breakout / Daily)    — 4 hours
-    4: 4 * 60 * 60,  # Gemma (Range / Daily)      — 4 hours
-    5: 4 * 60 * 60,  # Josh (Reversal / Daily)    — 4 hours
+    1: 60,           # Finn (Momentum / Intraday) — 60s (Test Mode)
+    2: 60,           # Tycoon (Trend / Intraday)  — 60s (Test Mode)
+    3: 5 * 60,       # Puff (Breakout / Daily)    — 5 mins (Test Mode)
+    4: 5 * 60,       # Gemma (Range / Daily)      — 5 mins (Test Mode)
+    5: 5 * 60,       # Josh (Reversal / Daily)    — 5 mins (Test Mode)
 }
 
 # How often to re-scan the chain for new users (seconds)
@@ -58,8 +58,10 @@ class BotEngine:
                 logger.info("Found %d user(s) with allocations: %s", len(self._active_users), [u[:10] + "..." for u in self._active_users])
             else:
                 logger.warning("No users with allocations found yet. Users will be discovered as they allocate.")
+                
+            self.positions = await self.chain.sync_open_positions()
         except Exception as exc:
-            logger.warning("Initial user discovery failed, will retry: %s", exc)
+            logger.warning("User discovery or sync failed: %s", exc)
 
         logger.info("Streaming live market data...")
 
@@ -134,19 +136,6 @@ class BotEngine:
         key = (user.lower(), signal.bot_id, signal.symbol)
         if key in self.positions:
             return  # already has an open position for this bot+symbol
-
-        # Bot-level lock: if this user already has ANY open position on this bot,
-        # block new trades until every existing trade for this bot closes.
-        user_bot_positions = [
-            k for k in self.positions
-            if k[0] == user.lower() and k[1] == signal.bot_id
-        ]
-        if user_bot_positions:
-            logger.debug(
-                "Skipping %s for %s on bot %d — user has %d open position(s), waiting for cycle to complete",
-                signal.symbol, user[:10], signal.bot_id, len(user_bot_positions),
-            )
-            return
 
         allocation = await self.chain.bot_allocation(user, signal.bot_id)
         collateral = max(25.0, allocation / 10**6 * signal.collateral_fraction)
