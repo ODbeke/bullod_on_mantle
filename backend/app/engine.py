@@ -133,9 +133,12 @@ class BotEngine:
         self._last_signal_time[(signal.bot_id, signal.symbol)] = time()
 
     async def _handle_signal(self, user: str, signal: Signal) -> None:
-        key = (user.lower(), signal.bot_id, signal.symbol)
-        if key in self.positions:
-            return  # already has an open position for this bot+symbol
+        user_lower = user.lower()
+        # Enforce strict 1-position-per-pair rule across ALL bots for this user
+        if any(pos.user == user_lower and pos.symbol == signal.symbol for pos in self.positions.values()):
+            return
+
+        key = (user_lower, signal.bot_id, signal.symbol)
 
         allocation = await self.chain.bot_allocation(user, signal.bot_id)
         collateral = max(25.0, allocation / 10**6 * signal.collateral_fraction)
@@ -196,6 +199,7 @@ class BotEngine:
                 await self.chain.close_trade(position.trade_id, price, pnl)
             except Exception as exc:
                 logger.error("On-chain close failed for trade #%d: %s", position.trade_id, exc)
+                continue # Skip deleting the position from memory so it can retry later
             try:
                 await self.repository.close_trade(position.trade_id, price, pnl)
             except Exception:

@@ -114,8 +114,23 @@ const vaultAbi = [
 
 const publicClient = createPublicClient({
   chain: mantleSepolia,
-  transport: http(import.meta.env.VITE_MANTLE_SEPOLIA_RPC_URL ?? "https://rpc.sepolia.mantle.xyz"),
+  transport: http(import.meta.env.VITE_MANTLE_SEPOLIA_RPC_URL ?? "https://rpc.sepolia.mantle.xyz", {
+    batch: true,
+  }),
 });
+
+async function readContractWithRetry<T>(fn: () => Promise<T>, retries = 3, delay = 1000): Promise<T> {
+  try {
+    return await fn();
+  } catch (err: any) {
+    if (retries > 0 && (err.status === 429 || err.message?.includes("429") || err.message?.includes("Too Many Requests"))) {
+      console.warn(`Rate limited (429). Retrying in ${delay}ms... (${retries} retries left)`);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      return readContractWithRetry(fn, retries - 1, delay * 2);
+    }
+    throw err;
+  }
+}
 
 function walletClient(account: Address) {
   if (!window.ethereum) {
@@ -324,16 +339,23 @@ export async function fetchUserVaultData(account: Address): Promise<UserVaultDat
       for (let i = 0; i < tradeIds.length; i += CHUNK_SIZE) {
         const chunk = tradeIds.slice(i, i + CHUNK_SIZE);
         const results = await Promise.all(
-          chunk.map((tid) =>
-            publicClient.readContract({
-              address: TRADING_VAULT_ADDRESS!,
-              abi: vaultAbi,
-              functionName: "trades",
-              args: [tid],
-            }),
-          ),
+          chunk.map(async (tid) => {
+            try {
+              return await readContractWithRetry(() =>
+                publicClient.readContract({
+                  address: TRADING_VAULT_ADDRESS!,
+                  abi: vaultAbi,
+                  functionName: "trades",
+                  args: [tid],
+                })
+              );
+            } catch (e) {
+              console.error(`Failed to fetch trade detail for ID ${tid}:`, e);
+              return null;
+            }
+          })
         );
-        tradeResults.push(...results);
+        tradeResults.push(...results.filter((res): res is Exclude<typeof res, null> => res !== null));
       }
 
       trades = tradeResults.map((t) => {

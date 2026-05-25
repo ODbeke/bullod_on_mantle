@@ -101,6 +101,8 @@ class ChainRecorder:
                 )
         self._known_users: set[str] = set()
         self._last_scanned_block: int = 0
+        import asyncio
+        self._tx_lock = asyncio.Lock()
 
     @staticmethod
     def price_to_chain(price: float) -> int:
@@ -232,33 +234,35 @@ class ChainRecorder:
     async def open_trade(self, user: str, signal: Signal, collateral_usdc: float) -> int | None:
         if not self.contract or not self.account:
             return None
-        nonce = await self.web3.eth.get_transaction_count(self.account.address)
-        tx = await self.contract.functions.openTrade(
-            AsyncWeb3.to_checksum_address(user),
-            signal.bot_id,
-            signal.symbol.replace("USDT", "/USDT"),
-            signal.side == "long",
-            self.usdc_to_chain(collateral_usdc),
-            self.price_to_chain(signal.price),
-        ).build_transaction({"from": self.account.address, "nonce": nonce, "chainId": 5003})
-        signed = self.account.sign_transaction(tx)
-        tx_hash = await self.web3.eth.send_raw_transaction(signed.raw_transaction)
-        receipt = await self.web3.eth.wait_for_transaction_receipt(tx_hash)
-        logs = self.contract.events.TradeOpened().process_receipt(receipt)
-        return int(logs[0]["args"]["tradeId"]) if logs else None
+        async with self._tx_lock:
+            nonce = await self.web3.eth.get_transaction_count(self.account.address)
+            tx = await self.contract.functions.openTrade(
+                AsyncWeb3.to_checksum_address(user),
+                signal.bot_id,
+                signal.symbol.replace("USDT", "/USDT"),
+                signal.side == "long",
+                self.usdc_to_chain(collateral_usdc),
+                self.price_to_chain(signal.price),
+            ).build_transaction({"from": self.account.address, "nonce": nonce, "chainId": 5003})
+            signed = self.account.sign_transaction(tx)
+            tx_hash = await self.web3.eth.send_raw_transaction(signed.raw_transaction)
+            receipt = await self.web3.eth.wait_for_transaction_receipt(tx_hash)
+            logs = self.contract.events.TradeOpened().process_receipt(receipt)
+            return int(logs[0]["args"]["tradeId"]) if logs else None
 
     async def close_trade(self, trade_id: int, exit_price: float, pnl_usdc: float) -> str | None:
         if not self.contract or not self.account:
             return None
-        nonce = await self.web3.eth.get_transaction_count(self.account.address)
-        tx = await self.contract.functions.closeTrade(
-            trade_id,
-            self.price_to_chain(exit_price),
-            self.usdc_to_chain(pnl_usdc),
-        ).build_transaction({"from": self.account.address, "nonce": nonce, "chainId": 5003})
-        signed = self.account.sign_transaction(tx)
-        tx_hash = await self.web3.eth.send_raw_transaction(signed.raw_transaction)
-        return tx_hash.hex()
+        async with self._tx_lock:
+            nonce = await self.web3.eth.get_transaction_count(self.account.address)
+            tx = await self.contract.functions.closeTrade(
+                trade_id,
+                self.price_to_chain(exit_price),
+                self.usdc_to_chain(pnl_usdc),
+            ).build_transaction({"from": self.account.address, "nonce": nonce, "chainId": 5003})
+            signed = self.account.sign_transaction(tx)
+            tx_hash = await self.web3.eth.send_raw_transaction(signed.raw_transaction)
+            return tx_hash.hex()
 
 
 def abi_path() -> Path:
