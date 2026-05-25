@@ -1,0 +1,309 @@
+
+> od-bot@1.0.0 dev
+> vite --host 0.0.0.0 --port 5173
+
+
+  VITE v8.0.13  ready in 324 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: http://192.168.0.141:5173/
+10:58:06 AM [vite] (client) [console.warn] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+10:58:06 AM [vite] (client) [console.warn] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+10:58:06 AM [vite] (client) [console.warn] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+10:58:06 AM [vite] (client) [console.warn] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+10:58:06 AM [vite] (client) [console.warn] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+10:58:06 AM [vite] (client) [console.warn] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+10:58:06 AM [vite] (client) [console.warn] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+10:58:06 AM [vite] (client) [console.warn] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+10:58:06 AM [vite] (client) [console.warn] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+10:58:06 AM [vite] (client) [console.warn] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+10:58:08 AM [vite] (client) [console.error] Critical error in fetchUserVaultData: ContractFunctionExecutionError: RPC Request failed.
+
+URL: https://rpc.sepolia.mantle.xyz
+Request body: {"method":"eth_call","params":[{"data":"0x4cab7614000000000000000000000000adf532d180d50f4f71a39a909fea1f941bfc8a450000000000000000000000000000000000000000000000000000000000000002","to":"0x35143Da0E758d1F1dc688c13Ef5471B1f26449c8"},"latest"]}
+ 
+Raw Call Arguments:
+  to:    0x35143Da0E758d1F1dc688c13Ef5471B1f26449c8
+  data:  0x4cab7614000000000000000000000000adf532d180d50f4f71a39a909fea1f941bfc8a450000000000000000000000000000000000000000000000000000000000000002
+ 
+Contract Call:
+  address:   0x35143Da0E758d1F1dc688c13Ef5471B1f26449c8
+  function:  botAllocation(address, uint8)
+  args:                   (0xadF532d180D50F4F71a39A909FEa1F941BfC8a45, 2)
+
+Docs: https://viem.sh/docs/contract/readContract
+Details: rate limit exceeded, please try it later.
+Version: viem@2.50.4
+    at getContractError (http://localhost:5173/@fs/Users/okoyes/Documents/OD%20bot/node_modules/.vite/deps/_esm-Dna6wtHN.js?v=5a7cf3bb:4481:9)
+    at readContract (http://localhost:5173/@fs/Users/okoyes/Documents/OD%20bot/node_modules/.vite/deps/_esm-Dna6wtHN.js?v=5a7cf3bb:10763:9)
+    at async readContractWithRetry (http://localhost:5173/src/lib/contracts.ts:226:10)
+    at async Promise.all (index 3)
+    at async fetchUserVaultData (http://localhost:5173/src/lib/contracts.ts:356:57)
+    at async Promise.all (index 1)
+    at async http://localhost:5173/src/lib/useVaultData.ts:27:27
+10:58:08 AM [vite] (client) [console.error] Failed to fetch global vault data: ContractFunctionExecutionError: RPC Request failed.
+
+URL: https://rpc.sepolia.mantle.xyz
+Request body: {"method":"eth_call","params":[{"data":"0x70a0823100000000000000000000000035143da0e758d1f1dc688c13ef5471b1f26449c8","to":"0x84bF6BA683178B3Fa97882bB00bC65d219aB38b7"},"latest"]}
+ 
+Raw Call Arguments:
+  to:    0x84bF6BA683178B3Fa97882bB00bC65d219aB38b7
+  data:  0x70a0823100000000000000000000000035143da0e758d1f1dc688c13ef5471b1f26449c8
+ 
+Contract Call:
+  address:   0x84bF6BA683178B3Fa97882bB00bC65d219aB38b7
+  function:  balanceOf(address account)
+  args:               (0x35143Da0E758d1F1dc688c13Ef5471B1f26449c8)
+
+Docs: https://viem.sh/docs/contract/readContract
+Details: rate limit exceeded, please try it later.
+Version: viem@2.50.4
+    at getContractError (http://localhost:5173/@fs/Users/okoyes/Documents/OD%20bot/node_modules/.vite/deps/_esm-Dna6wtHN.js?v=5a7cf3bb:4481:9)
+    at readContract (http://localhost:5173/@fs/Users/okoyes/Documents/OD%20bot/node_modules/.vite/deps/_esm-Dna6wtHN.js?v=5a7cf3bb:10763:9)
+    at async readContractWithRetry (http://localhost:5173/src/lib/contracts.ts:226:10)
+    at async Promise.all (index 0)
+    at async fetchGlobalVaultData (http://localhost:5173/src/lib/contracts.ts:473:45)
+    at async Promise.all (index 0)
+    at async http://localhost:5173/src/lib/useVaultData.ts:27:27
+10:58:08 AM [vite] (client) [console.error] Critical error in fetchUserVaultData: ContractFunctionExecutionError: RPC Request failed.
+
+URL: https://rpc.sepolia.mantle.xyz
+Request body: {"method":"eth_call","params":[{"data":"0x70a08231000000000000000000000000adf532d180d50f4f71a39a909fea1f941bfc8a45","to":"0x84bF6BA683178B3Fa97882bB00bC65d219aB38b7"},"latest"]}
+ 
+Raw Call Arguments:
+  to:    0x84bF6BA683178B3Fa97882bB00bC65d219aB38b7
+  data:  0x70a08231000000000000000000000000adf532d180d50f4f71a39a909fea1f941bfc8a45
+ 
+Contract Call:
+  address:   0x84bF6BA683178B3Fa97882bB00bC65d219aB38b7
+  function:  balanceOf(address account)
+  args:               (0xadF532d180D50F4F71a39A909FEa1F941BfC8a45)
+
+Docs: https://viem.sh/docs/contract/readContract
+Details: rate limit exceeded, please try it later.
+Version: viem@2.50.4
+    at getContractError (http://localhost:5173/@fs/Users/okoyes/Documents/OD%20bot/node_modules/.vite/deps/_esm-Dna6wtHN.js?v=5a7cf3bb:4481:9)
+    at readContract (http://localhost:5173/@fs/Users/okoyes/Documents/OD%20bot/node_modules/.vite/deps/_esm-Dna6wtHN.js?v=5a7cf3bb:10763:9)
+    at async readContractWithRetry (http://localhost:5173/src/lib/contracts.ts:226:10)
+    at async Promise.all (index 0)
+    at async fetchUserVaultData (http://localhost:5173/src/lib/contracts.ts:356:57)
+    at async Promise.all (index 1)
+    at async http://localhost:5173/src/lib/useVaultData.ts:27:27
+10:58:22 AM [vite] (client) hmr update /src/styles.css, /src/pages/Dashboard.tsx
+10:58:24 AM [vite] (client) [console.warn] Transient/Rate Limit RPC error. Retrying in 500ms... (5 retries left). Error: rpc request failed.
+
+url: https://rpc.sepolia.mantle.xyz
+request body: {"method":"eth_call","params":[{"data":"0x4cab7614000000000000000000000000adf532d180d50f4f71a39a909fea1f941bfc8a450000000000000000000000000000000000000000000000000000000000000002","to":"0x35143da0e758d1f1dc688c13ef5471b1f26449c8"},"latest"]}
+ 
+raw call arguments:
+  to:    0x35143da0e758d1f1dc688c13ef5471b1f26449c8
+  data:  0x4cab7614000000000000000000000000adf532d180d50f4f71a39a909fea1f941bfc8a450000000000000000000000000000000000000000000000000000000000000002
+ 
+contract call:
+  address:   0x35143da0e758d1f1dc688c13ef5471b1f26449c8
+  function:  botallocation(address, uint8)
+  args:                   (0xadf532d180d50f4f71a39a909fea1f941bfc8a45, 2)
+
+docs: https://viem.sh/docs/contract/readcontract
+details: rate limit exceeded, please try it later.
+version: viem@2.50.4
+10:58:24 AM [vite] (client) [console.warn] Transient/Rate Limit RPC error. Retrying in 500ms... (5 retries left). Error: rpc request failed.
+
+url: https://rpc.sepolia.mantle.xyz
+request body: {"method":"eth_call","params":[{"data":"0x4cab7614000000000000000000000000adf532d180d50f4f71a39a909fea1f941bfc8a450000000000000000000000000000000000000000000000000000000000000003","to":"0x35143da0e758d1f1dc688c13ef5471b1f26449c8"},"latest"]}
+ 
+raw call arguments:
+  to:    0x35143da0e758d1f1dc688c13ef5471b1f26449c8
+  data:  0x4cab7614000000000000000000000000adf532d180d50f4f71a39a909fea1f941bfc8a450000000000000000000000000000000000000000000000000000000000000003
+ 
+contract call:
+  address:   0x35143da0e758d1f1dc688c13ef5471b1f26449c8
+  function:  botallocation(address, uint8)
+  args:                   (0xadf532d180d50f4f71a39a909fea1f941bfc8a45, 3)
+
+docs: https://viem.sh/docs/contract/readcontract
+details: rate limit exceeded, please try it later.
+version: viem@2.50.4
+10:58:24 AM [vite] (client) [console.warn] Transient/Rate Limit RPC error. Retrying in 500ms... (5 retries left). Error: rpc request failed.
+
+url: https://rpc.sepolia.mantle.xyz
+request body: {"method":"eth_call","params":[{"data":"0x4cab7614000000000000000000000000adf532d180d50f4f71a39a909fea1f941bfc8a450000000000000000000000000000000000000000000000000000000000000004","to":"0x35143da0e758d1f1dc688c13ef5471b1f26449c8"},"latest"]}
+ 
+raw call arguments:
+  to:    0x35143da0e758d1f1dc688c13ef5471b1f26449c8
+  data:  0x4cab7614000000000000000000000000adf532d180d50f4f71a39a909fea1f941bfc8a450000000000000000000000000000000000000000000000000000000000000004
+ 
+contract call:
+  address:   0x35143da0e758d1f1dc688c13ef5471b1f26449c8
+  function:  botallocation(address, uint8)
+  args:                   (0xadf532d180d50f4f71a39a909fea1f941bfc8a45, 4)
+
+docs: https://viem.sh/docs/contract/readcontract
+details: rate limit exceeded, please try it later.
+version: viem@2.50.4
+10:58:24 AM [vite] (client) [console.warn] Transient/Rate Limit RPC error. Retrying in 500ms... (5 retries left). Error: rpc request failed.
+
+url: https://rpc.sepolia.mantle.xyz
+request body: {"method":"eth_call","params":[{"data":"0x4cab7614000000000000000000000000adf532d180d50f4f71a39a909fea1f941bfc8a450000000000000000000000000000000000000000000000000000000000000005","to":"0x35143da0e758d1f1dc688c13ef5471b1f26449c8"},"latest"]}
+ 
+raw call arguments:
+  to:    0x35143da0e758d1f1dc688c13ef5471b1f26449c8
+  data:  0x4cab7614000000000000000000000000adf532d180d50f4f71a39a909fea1f941bfc8a450000000000000000000000000000000000000000000000000000000000000005
+ 
+contract call:
+  address:   0x35143da0e758d1f1dc688c13ef5471b1f26449c8
+  function:  botallocation(address, uint8)
+  args:                   (0xadf532d180d50f4f71a39a909fea1f941bfc8a45, 5)
+
+docs: https://viem.sh/docs/contract/readcontract
+details: rate limit exceeded, please try it later.
+version: viem@2.50.4
+10:58:26 AM [vite] (client) [console.warn] Transient/Rate Limit RPC error. Retrying in 500ms... (5 retries left). Error: rpc request failed.
+
+url: https://rpc.sepolia.mantle.xyz
+request body: {"method":"eth_call","params":[{"data":"0x1e6c598e0000000000000000000000000000000000000000000000000000000000000005","to":"0x35143da0e758d1f1dc688c13ef5471b1f26449c8"},"latest"]}
+ 
+raw call arguments:
+  to:    0x35143da0e758d1f1dc688c13ef5471b1f26449c8
+  data:  0x1e6c598e0000000000000000000000000000000000000000000000000000000000000005
+ 
+contract call:
+  address:   0x35143da0e758d1f1dc688c13ef5471b1f26449c8
+  function:  trades(uint256)
+  args:            (5)
+
+docs: https://viem.sh/docs/contract/readcontract
+details: rate limit exceeded, please try it later.
+version: viem@2.50.4
+10:58:34 AM [vite] (client) [console.warn] Transient/Rate Limit RPC error. Retrying in 500ms... (5 retries left). Error: rpc request failed.
+
+url: https://rpc.sepolia.mantle.xyz
+request body: {"method":"eth_call","params":[{"data":"0x1e6c598e000000000000000000000000000000000000000000000000000000000000004b","to":"0x35143da0e758d1f1dc688c13ef5471b1f26449c8"},"latest"]}
+ 
+raw call arguments:
+  to:    0x35143da0e758d1f1dc688c13ef5471b1f26449c8
+  data:  0x1e6c598e000000000000000000000000000000000000000000000000000000000000004b
+ 
+contract call:
+  address:   0x35143da0e758d1f1dc688c13ef5471b1f26449c8
+  function:  trades(uint256)
+  args:            (75)
+
+docs: https://viem.sh/docs/contract/readcontract
+details: rate limit exceeded, please try it later.
+version: viem@2.50.4
+10:58:34 AM [vite] (client) [console.warn] Transient/Rate Limit RPC error. Retrying in 500ms... (5 retries left). Error: rpc request failed.
+
+url: https://rpc.sepolia.mantle.xyz
+request body: {"method":"eth_call","params":[{"data":"0x1e6c598e000000000000000000000000000000000000000000000000000000000000004c","to":"0x35143da0e758d1f1dc688c13ef5471b1f26449c8"},"latest"]}
+ 
+raw call arguments:
+  to:    0x35143da0e758d1f1dc688c13ef5471b1f26449c8
+  data:  0x1e6c598e000000000000000000000000000000000000000000000000000000000000004c
+ 
+contract call:
+  address:   0x35143da0e758d1f1dc688c13ef5471b1f26449c8
+  function:  trades(uint256)
+  args:            (76)
+
+docs: https://viem.sh/docs/contract/readcontract
+details: rate limit exceeded, please try it later.
+version: viem@2.50.4
+10:58:34 AM [vite] (client) [console.warn] Transient/Rate Limit RPC error. Retrying in 500ms... (5 retries left). Error: rpc request failed.
+
+url: https://rpc.sepolia.mantle.xyz
+request body: {"method":"eth_call","params":[{"data":"0x1e6c598e000000000000000000000000000000000000000000000000000000000000004d","to":"0x35143da0e758d1f1dc688c13ef5471b1f26449c8"},"latest"]}
+ 
+raw call arguments:
+  to:    0x35143da0e758d1f1dc688c13ef5471b1f26449c8
+  data:  0x1e6c598e000000000000000000000000000000000000000000000000000000000000004d
+ 
+contract call:
+  address:   0x35143da0e758d1f1dc688c13ef5471b1f26449c8
+  function:  trades(uint256)
+  args:            (77)
+
+docs: https://viem.sh/docs/contract/readcontract
+details: rate limit exceeded, please try it later.
+version: viem@2.50.4
+10:58:34 AM [vite] (client) [console.warn] Transient/Rate Limit RPC error. Retrying in 500ms... (5 retries left). Error: rpc request failed.
+
+url: https://rpc.sepolia.mantle.xyz
+request body: {"method":"eth_call","params":[{"data":"0x1e6c598e000000000000000000000000000000000000000000000000000000000000004e","to":"0x35143da0e758d1f1dc688c13ef5471b1f26449c8"},"latest"]}
+ 
+raw call arguments:
+  to:    0x35143da0e758d1f1dc688c13ef5471b1f26449c8
+  data:  0x1e6c598e000000000000000000000000000000000000000000000000000000000000004e
+ 
+contract call:
+  address:   0x35143da0e758d1f1dc688c13ef5471b1f26449c8
+  function:  trades(uint256)
+  args:            (78)
+
+docs: https://viem.sh/docs/contract/readcontract
+details: rate limit exceeded, please try it later.
+version: viem@2.50.4
+10:58:34 AM [vite] (client) [console.warn] Transient/Rate Limit RPC error. Retrying in 500ms... (5 retries left). Error: rpc request failed.
+
+url: https://rpc.sepolia.mantle.xyz
+request body: {"method":"eth_call","params":[{"data":"0x1e6c598e000000000000000000000000000000000000000000000000000000000000004f","to":"0x35143da0e758d1f1dc688c13ef5471b1f26449c8"},"latest"]}
+ 
+raw call arguments:
+  to:    0x35143da0e758d1f1dc688c13ef5471b1f26449c8
+  data:  0x1e6c598e000000000000000000000000000000000000000000000000000000000000004f
+ 
+contract call:
+  address:   0x35143da0e758d1f1dc688c13ef5471b1f26449c8
+  function:  trades(uint256)
+  args:            (79)
+
+docs: https://viem.sh/docs/contract/readcontract
+details: rate limit exceeded, please try it later.
+version: viem@2.50.4
+10:58:43 AM [vite] (client) [console.warn] Transient/Rate Limit RPC error. Retrying in 500ms... (5 retries left). Error: rpc request failed.
+
+url: https://rpc.sepolia.mantle.xyz
+request body: {"method":"eth_call","params":[{"data":"0x1e6c598e0000000000000000000000000000000000000000000000000000000000000077","to":"0x35143da0e758d1f1dc688c13ef5471b1f26449c8"},"latest"]}
+ 
+raw call arguments:
+  to:    0x35143da0e758d1f1dc688c13ef5471b1f26449c8
+  data:  0x1e6c598e0000000000000000000000000000000000000000000000000000000000000077
+ 
+contract call:
+  address:   0x35143da0e758d1f1dc688c13ef5471b1f26449c8
+  function:  trades(uint256)
+  args:            (119)
+
+docs: https://viem.sh/docs/contract/readcontract
+details: rate limit exceeded, please try it later.
+version: viem@2.50.4

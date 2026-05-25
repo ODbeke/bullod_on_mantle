@@ -119,14 +119,27 @@ const publicClient = createPublicClient({
   }),
 });
 
-async function readContractWithRetry<T>(fn: () => Promise<T>, retries = 3, delay = 1000): Promise<T> {
+async function readContractWithRetry<T>(fn: () => Promise<T>, retries = 5, delay = 500): Promise<T> {
   try {
     return await fn();
   } catch (err: any) {
-    if (retries > 0 && (err.status === 429 || err.message?.includes("429") || err.message?.includes("Too Many Requests"))) {
-      console.warn(`Rate limited (429). Retrying in ${delay}ms... (${retries} retries left)`);
+    const errMsg = String(err.message || "").toLowerCase();
+    const isTransient =
+      err.status === 429 ||
+      errMsg.includes("429") ||
+      errMsg.includes("too many requests") ||
+      errMsg.includes("rate limit") ||
+      errMsg.includes("exceeded") ||
+      errMsg.includes("fetch") ||
+      errMsg.includes("failed to fetch") ||
+      errMsg.includes("network") ||
+      errMsg.includes("timeout") ||
+      errMsg.includes("request");
+
+    if (retries > 0 && isTransient) {
+      console.warn(`Transient/Rate Limit RPC error. Retrying in ${delay}ms... (${retries} retries left). Error: ${errMsg}`);
       await new Promise((resolve) => setTimeout(resolve, delay));
-      return readContractWithRetry(fn, retries - 1, delay * 2);
+      return readContractWithRetry(fn, retries - 1, delay * 1.5);
     }
     throw err;
   }
