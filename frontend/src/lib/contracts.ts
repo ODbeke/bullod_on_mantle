@@ -279,121 +279,146 @@ export interface GlobalVaultData {
 const BOT_IDS = [1, 2, 3, 4, 5] as const;
 
 export async function fetchUserVaultData(account: Address): Promise<UserVaultData> {
+  const fallbackData: UserVaultData = {
+    walletBalance: 0,
+    availableBalance: 0,
+    allocations: {},
+    activeBotCount: 0,
+    totalAllocated: 0,
+    trades: [],
+    totalPnl: 0,
+    openTradeCount: 0,
+    closedTradeCount: 0,
+  };
+
   if (!TRADING_VAULT_ADDRESS || !MOCK_USDC_ADDRESS) {
-    return { walletBalance: 0, availableBalance: 0, allocations: {}, activeBotCount: 0, totalAllocated: 0, trades: [], totalPnl: 0, openTradeCount: 0, closedTradeCount: 0 };
+    return fallbackData;
   }
-
-  // Fetch wallet mUSDC balance + vault available balance + all 5 bot allocations in parallel
-  const [walletRaw, balanceRaw, ...allocationResults] = await Promise.all([
-    publicClient.readContract({
-      address: MOCK_USDC_ADDRESS,
-      abi: usdcAbi,
-      functionName: "balanceOf",
-      args: [account],
-    }),
-    publicClient.readContract({
-      address: TRADING_VAULT_ADDRESS,
-      abi: vaultAbi,
-      functionName: "availableBalance",
-      args: [account],
-    }),
-    ...BOT_IDS.map((botId) =>
-      publicClient.readContract({
-        address: TRADING_VAULT_ADDRESS,
-        abi: vaultAbi,
-        functionName: "botAllocation",
-        args: [account, botId],
-      }),
-    ),
-  ]);
-
-  const walletBalance = Number(formatUnits(walletRaw, 6));
-  const availableBalance = Number(formatUnits(balanceRaw, 6));
-  const allocations: Record<number, number> = {};
-  let totalAllocated = 0;
-  let activeBotCount = 0;
-
-  BOT_IDS.forEach((botId, idx) => {
-    const val = Number(formatUnits(allocationResults[idx], 6));
-    allocations[botId] = val;
-    totalAllocated += val;
-  });
-
-  // Fetch user trade IDs
-  let trades: OnChainTrade[] = [];
-  let totalPnl = 0;
-  let openTradeCount = 0;
-  let closedTradeCount = 0;
 
   try {
-    const tradeIds = await publicClient.readContract({
-      address: TRADING_VAULT_ADDRESS,
-      abi: vaultAbi,
-      functionName: "getUserTrades",
-      args: [account],
+    // Fetch wallet mUSDC balance + vault available balance + all 5 bot allocations in parallel
+    const [walletRaw, balanceRaw, ...allocationResults] = await Promise.all([
+      readContractWithRetry(() =>
+        publicClient.readContract({
+          address: MOCK_USDC_ADDRESS,
+          abi: usdcAbi,
+          functionName: "balanceOf",
+          args: [account],
+        })
+      ),
+      readContractWithRetry(() =>
+        publicClient.readContract({
+          address: TRADING_VAULT_ADDRESS,
+          abi: vaultAbi,
+          functionName: "availableBalance",
+          args: [account],
+        })
+      ),
+      ...BOT_IDS.map((botId) =>
+        readContractWithRetry(() =>
+          publicClient.readContract({
+            address: TRADING_VAULT_ADDRESS,
+            abi: vaultAbi,
+            functionName: "botAllocation",
+            args: [account, botId],
+          })
+        )
+      ),
+    ]);
+
+    const walletBalance = Number(formatUnits(walletRaw, 6));
+    const availableBalance = Number(formatUnits(balanceRaw, 6));
+    const allocations: Record<number, number> = {};
+    let totalAllocated = 0;
+    let activeBotCount = 0;
+
+    BOT_IDS.forEach((botId, idx) => {
+      const val = Number(formatUnits(allocationResults[idx], 6));
+      allocations[botId] = val;
+      totalAllocated += val;
     });
 
-    if (tradeIds.length > 0) {
-      const tradeResults = [];
-      const CHUNK_SIZE = 5;
-      for (let i = 0; i < tradeIds.length; i += CHUNK_SIZE) {
-        const chunk = tradeIds.slice(i, i + CHUNK_SIZE);
-        const results = await Promise.all(
-          chunk.map(async (tid) => {
-            try {
-              return await readContractWithRetry(() =>
-                publicClient.readContract({
-                  address: TRADING_VAULT_ADDRESS!,
-                  abi: vaultAbi,
-                  functionName: "trades",
-                  args: [tid],
-                })
-              );
-            } catch (e) {
-              console.error(`Failed to fetch trade detail for ID ${tid}:`, e);
-              return null;
-            }
-          })
-        );
-        tradeResults.push(...results.filter((res): res is Exclude<typeof res, null> => res !== null));
+    // Fetch user trade IDs
+    let trades: OnChainTrade[] = [];
+    let totalPnl = 0;
+    let openTradeCount = 0;
+    let closedTradeCount = 0;
+
+    try {
+      const tradeIds = await readContractWithRetry(() =>
+        publicClient.readContract({
+          address: TRADING_VAULT_ADDRESS,
+          abi: vaultAbi,
+          functionName: "getUserTrades",
+          args: [account],
+        })
+      );
+
+      if (tradeIds.length > 0) {
+        const tradeResults = [];
+        const CHUNK_SIZE = 5;
+        for (let i = 0; i < tradeIds.length; i += CHUNK_SIZE) {
+          const chunk = tradeIds.slice(i, i + CHUNK_SIZE);
+          const results = await Promise.all(
+            chunk.map(async (tid) => {
+              try {
+                return await readContractWithRetry(() =>
+                  publicClient.readContract({
+                    address: TRADING_VAULT_ADDRESS!,
+                    abi: vaultAbi,
+                    functionName: "trades",
+                    args: [tid],
+                  })
+                );
+              } catch (e) {
+                console.error(`Failed to fetch trade detail for ID ${tid}:`, e);
+                return null;
+              }
+            })
+          );
+          tradeResults.push(...results.filter((res): res is Exclude<typeof res, null> => res !== null));
+        }
+
+        trades = tradeResults.map((t) => {
+          const status = Number(t[11]) === 0 ? "open" as const : "closed" as const;
+          const pnlRaw = t[8];
+          const pnl = Number(formatUnits(pnlRaw < 0n ? -(-pnlRaw) : pnlRaw, 6));
+          if (status === "open") openTradeCount++;
+          else closedTradeCount++;
+          totalPnl += pnl;
+
+          return {
+            id: Number(t[0]),
+            user: t[1],
+            botId: Number(t[2]),
+            symbol: t[3],
+            isLong: t[4],
+            collateral: Number(formatUnits(t[5], 6)),
+            entryPrice: Number(formatUnits(t[6], 8)),
+            exitPrice: Number(formatUnits(t[7], 8)),
+            pnl,
+            openedAt: Number(t[9]),
+            closedAt: Number(t[10]),
+            status,
+          };
+        });
+
+        const botsWithOpenTrades = new Set<number>();
+        trades.forEach((t) => {
+          if (t.status === "open") botsWithOpenTrades.add(t.botId);
+        });
+        activeBotCount = botsWithOpenTrades.size;
       }
-
-      trades = tradeResults.map((t) => {
-        const status = Number(t[11]) === 0 ? "open" as const : "closed" as const;
-        const pnlRaw = t[8];
-        const pnl = Number(formatUnits(pnlRaw < 0n ? -(-pnlRaw) : pnlRaw, 6));
-        if (status === "open") openTradeCount++;
-        else closedTradeCount++;
-        totalPnl += pnl;
-
-        return {
-          id: Number(t[0]),
-          user: t[1],
-          botId: Number(t[2]),
-          symbol: t[3],
-          isLong: t[4],
-          collateral: Number(formatUnits(t[5], 6)),
-          entryPrice: Number(formatUnits(t[6], 8)),
-          exitPrice: Number(formatUnits(t[7], 8)),
-          pnl,
-          openedAt: Number(t[9]),
-          closedAt: Number(t[10]),
-          status,
-        };
-      });
-
-      const botsWithOpenTrades = new Set<number>();
-      trades.forEach((t) => {
-        if (t.status === "open") botsWithOpenTrades.add(t.botId);
-      });
-      activeBotCount = botsWithOpenTrades.size;
+    } catch (err) {
+      console.error("Failed to fetch user trades:", err);
+      // getUserTrades may revert for new users — treat as empty
     }
-  } catch (err) {
-    console.error("Failed to fetch user trades:", err);
-    // getUserTrades may revert for new users — treat as empty
-  }
 
-  return { walletBalance, availableBalance, allocations, activeBotCount, totalAllocated, trades, totalPnl, openTradeCount, closedTradeCount };
+    return { walletBalance, availableBalance, allocations, activeBotCount, totalAllocated, trades, totalPnl, openTradeCount, closedTradeCount };
+  } catch (globalErr) {
+    console.error("Critical error in fetchUserVaultData:", globalErr);
+    return fallbackData;
+  }
 }
 
 export async function fetchGlobalVaultData(): Promise<GlobalVaultData> {
@@ -401,22 +426,36 @@ export async function fetchGlobalVaultData(): Promise<GlobalVaultData> {
     return { totalVaultBalance: 0, totalTradeCount: 0 };
   }
 
-  const [vaultBalanceRaw, nextTradeIdRaw] = await Promise.all([
-    publicClient.readContract({
-      address: MOCK_USDC_ADDRESS,
-      abi: usdcAbi,
-      functionName: "balanceOf",
-      args: [TRADING_VAULT_ADDRESS],
-    }),
-    publicClient.readContract({
-      address: TRADING_VAULT_ADDRESS,
-      abi: vaultAbi,
-      functionName: "nextTradeId",
-    }),
-  ]);
+  try {
+    const [vaultBalanceRaw, nextTradeIdRaw] = await Promise.all([
+      readContractWithRetry(() =>
+        publicClient.readClient ? (publicClient as any).readContract({ // safety check or standard readContract
+          address: MOCK_USDC_ADDRESS,
+          abi: usdcAbi,
+          functionName: "balanceOf",
+          args: [TRADING_VAULT_ADDRESS],
+        }) : publicClient.readContract({
+          address: MOCK_USDC_ADDRESS,
+          abi: usdcAbi,
+          functionName: "balanceOf",
+          args: [TRADING_VAULT_ADDRESS],
+        })
+      ),
+      readContractWithRetry(() =>
+        publicClient.readContract({
+          address: TRADING_VAULT_ADDRESS,
+          abi: vaultAbi,
+          functionName: "nextTradeId",
+        })
+      ),
+    ]);
 
-  return {
-    totalVaultBalance: Number(formatUnits(vaultBalanceRaw, 6)),
-    totalTradeCount: Math.max(0, Number(nextTradeIdRaw) - 1),
-  };
+    return {
+      totalVaultBalance: Number(formatUnits(vaultBalanceRaw, 6)),
+      totalTradeCount: Math.max(0, Number(nextTradeIdRaw) - 1),
+    };
+  } catch (err) {
+    console.error("Failed to fetch global vault data:", err);
+    return { totalVaultBalance: 0, totalTradeCount: 0 };
+  }
 }
