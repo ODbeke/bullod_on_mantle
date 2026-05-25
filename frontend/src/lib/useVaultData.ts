@@ -32,9 +32,9 @@ export function useVaultData() {
   const [globalData, setGlobalData] = useState<GlobalVaultData>(EMPTY_GLOBAL);
   const [loading, setLoading] = useState(false);
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (isBackground = false) => {
     if (!contractsConfigured()) return;
-    setLoading(true);
+    if (!isBackground) setLoading(true);
 
     try {
       const [global, user] = await Promise.all([
@@ -48,13 +48,15 @@ export function useVaultData() {
     } catch (err) {
       console.error("Failed to fetch vault data:", err);
     } finally {
-      setLoading(false);
+      if (!isBackground) setLoading(false);
     }
   }, [address, isConnected]);
 
-  // Fetch on mount and whenever wallet changes
+  // Fetch on mount, whenever wallet changes, and background poll every 10 seconds
   useEffect(() => {
-    refresh();
+    refresh(false);
+    const interval = setInterval(() => refresh(true), 10000);
+    return () => clearInterval(interval);
   }, [refresh]);
 
   // Reset user data when wallet disconnects
