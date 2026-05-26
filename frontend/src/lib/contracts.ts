@@ -368,29 +368,26 @@ export async function fetchUserVaultData(account: Address): Promise<UserVaultDat
       );
 
       if (tradeIds.length > 0) {
-        const tradeResults = [];
-        const CHUNK_SIZE = 5;
-        for (let i = 0; i < tradeIds.length; i += CHUNK_SIZE) {
-          const chunk = tradeIds.slice(i, i + CHUNK_SIZE);
-          const results = await Promise.all(
-            chunk.map(async (tid) => {
-              try {
-                return await readContractWithRetry(() =>
-                  publicClient.readContract({
-                    address: TRADING_VAULT_ADDRESS!,
-                    abi: vaultAbi,
-                    functionName: "trades",
-                    args: [tid],
-                  })
-                );
-              } catch (e) {
-                console.error(`Failed to fetch trade detail for ID ${tid}:`, e);
-                return null;
-              }
-            })
-          );
-          tradeResults.push(...results.filter((res): res is Exclude<typeof res, null> => res !== null));
-        }
+        // Take the last 150 trade IDs (newest/latest) for instant parallel loading
+        const targetIds = tradeIds.slice(-150);
+        const results = await Promise.all(
+          targetIds.map(async (tid) => {
+            try {
+              return await readContractWithRetry(() =>
+                publicClient.readContract({
+                  address: TRADING_VAULT_ADDRESS!,
+                  abi: vaultAbi,
+                  functionName: "trades",
+                  args: [tid],
+                })
+              );
+            } catch (e) {
+              console.error(`Failed to fetch trade detail for ID ${tid}:`, e);
+              return null;
+            }
+          })
+        );
+        const tradeResults = results.filter((res): res is Exclude<typeof res, null> => res !== null);
 
         trades = tradeResults.map((t) => {
           const status = Number(t[11]) === 0 ? "open" as const : "closed" as const;
