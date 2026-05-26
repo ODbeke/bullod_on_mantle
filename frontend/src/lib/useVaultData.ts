@@ -10,6 +10,7 @@ import {
 import type { Address } from "viem";
 
 const EMPTY_USER: UserVaultData = {
+  walletBalance: 0,
   availableBalance: 0,
   allocations: {},
   activeBotCount: 0,
@@ -28,9 +29,48 @@ const EMPTY_GLOBAL: GlobalVaultData = {
 export function useVaultData() {
   const { address, isConnected } = useAccount();
 
-  const [userData, setUserData] = useState<UserVaultData>(EMPTY_USER);
-  const [globalData, setGlobalData] = useState<GlobalVaultData>(EMPTY_GLOBAL);
+  // Load initial global data from cache if present
+  const [globalData, setGlobalData] = useState<GlobalVaultData>(() => {
+    try {
+      const cached = localStorage.getItem("od_global_data");
+      return cached ? JSON.parse(cached) : EMPTY_GLOBAL;
+    } catch {
+      return EMPTY_GLOBAL;
+    }
+  });
+
+  // Load initial user data from cache if address is already known
+  const [userData, setUserData] = useState<UserVaultData>(() => {
+    if (typeof window !== "undefined" && isConnected && address) {
+      try {
+        const cached = localStorage.getItem(`od_user_data_${address.toLowerCase()}`);
+        return cached ? JSON.parse(cached) : EMPTY_USER;
+      } catch {
+        return EMPTY_USER;
+      }
+    }
+    return EMPTY_USER;
+  });
+
   const [loading, setLoading] = useState(false);
+
+  // Sync state whenever connected address changes
+  useEffect(() => {
+    if (isConnected && address) {
+      try {
+        const cached = localStorage.getItem(`od_user_data_${address.toLowerCase()}`);
+        if (cached) {
+          setUserData(JSON.parse(cached));
+          return;
+        }
+      } catch (err) {
+        console.error("Failed to load cached user data:", err);
+      }
+      setUserData(EMPTY_USER);
+    } else {
+      setUserData(EMPTY_USER);
+    }
+  }, [address, isConnected]);
 
   const refresh = useCallback(async (isBackground = false) => {
     if (!contractsConfigured()) return;
@@ -43,8 +83,14 @@ export function useVaultData() {
           ? fetchUserVaultData(address as Address)
           : Promise.resolve(EMPTY_USER),
       ]);
+
       setGlobalData(global);
-      setUserData(user);
+      localStorage.setItem("od_global_data", JSON.stringify(global));
+
+      if (isConnected && address) {
+        setUserData(user);
+        localStorage.setItem(`od_user_data_${address.toLowerCase()}`, JSON.stringify(user));
+      }
     } catch (err) {
       console.error("Failed to fetch vault data:", err);
     } finally {
@@ -58,13 +104,6 @@ export function useVaultData() {
     const interval = setInterval(() => refresh(true), 10000);
     return () => clearInterval(interval);
   }, [refresh]);
-
-  // Reset user data when wallet disconnects
-  useEffect(() => {
-    if (!isConnected) {
-      setUserData(EMPTY_USER);
-    }
-  }, [isConnected]);
 
   return { userData, globalData, loading, refresh };
 }

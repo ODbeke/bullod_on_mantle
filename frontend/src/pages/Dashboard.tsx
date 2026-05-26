@@ -108,10 +108,10 @@ export function Dashboard() {
             <div className="stats-pill-container">
               <div className="stats-pill">
                 {activeBotCount > 0 && <span className="pulse-dot" aria-hidden="true" />}
-                <strong>{loading ? "…" : `${activeBotCount} bots live`}</strong>
+                <strong>{loading && activeBotCount === 0 ? "…" : `${activeBotCount} bots live`}</strong>
               </div>
               <div className="stats-pill">
-                <strong>{loading ? "…" : `$${totalAllocated.toLocaleString()} mUSDC allocated`}</strong>
+                <strong>{loading && totalAllocated === 0 ? "…" : `$${totalAllocated.toLocaleString()} mUSDC allocated`}</strong>
               </div>
             </div>
           ) : (
@@ -125,7 +125,7 @@ export function Dashboard() {
           <div>
             <span>Vault equity</span>
             <strong>
-              {loading ? "…" : `$${globalData.totalVaultBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              {loading && globalData.totalVaultBalance === 0 ? "…" : `$${globalData.totalVaultBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
             </strong>
           </div>
           <div>
@@ -136,7 +136,7 @@ export function Dashboard() {
           </div>
           <div>
             <span>Indexed trades</span>
-            <strong>{loading ? "…" : globalData.totalTradeCount.toLocaleString()}</strong>
+            <strong>{loading && globalData.totalTradeCount === 0 ? "…" : globalData.totalTradeCount.toLocaleString()}</strong>
           </div>
         </div>
       </section>
