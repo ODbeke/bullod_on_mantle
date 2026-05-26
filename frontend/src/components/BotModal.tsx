@@ -22,7 +22,11 @@ export function BotModal({ bot, active, botAllocation, userTrades, onClose, onAc
   // Filter trades belonging to this bot
   const botTrades = useMemo(() => (bot ? userTrades.filter((t) => t.botId === bot.id) : []), [bot, userTrades]);
   const liveTrades = botTrades.filter((t) => t.status === "open");
-  const history = botTrades.filter((t) => t.status === "closed");
+  const history = useMemo(() => {
+    return botTrades
+      .filter((t) => t.status === "closed")
+      .sort((a, b) => b.closedAt - a.closedAt);
+  }, [botTrades]);
   const wins = history.filter((t) => t.pnl >= 0).length;
   const winRate = history.length ? Math.round((wins / history.length) * 100) : 0;
   const liveLong = liveTrades.filter((t) => t.isLong);
