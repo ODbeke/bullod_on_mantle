@@ -14,7 +14,7 @@ export function LandingPage() {
       <nav className="relative z-50 px-6 py-6 border-b border-white/5 backdrop-blur-md bg-[#0a0a0a]/50">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center">
-            <img src={logo} alt="OD Bot" className="h-16 w-auto -my-4 -ml-4" />
+            <img src={logo} alt="OD Bot" className="h-[180px] md:h-[220px] w-auto -my-[65px] -ml-[25px] hover:scale-[1.02] transition-transform duration-200 cursor-pointer" />
           </div>
           <div className="hidden md:flex gap-10 text-sm font-semibold text-gray-400">
             <a href="#features" className="hover:text-cyan-400 transition-colors">Features</a>
