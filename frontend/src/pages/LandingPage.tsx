@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight, Bot, LineChart, Shield, Zap } from "lucide-react";
+import logo from "../assets/logo.png";
 
 export function LandingPage() {
   return (
@@ -12,11 +13,8 @@ export function LandingPage() {
       {/* Navbar */}
       <nav className="relative z-50 px-6 py-6 border-b border-white/5 backdrop-blur-md bg-[#0a0a0a]/50">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-              <Bot className="w-6 h-6 text-white" />
-            </div>
-            <span className="font-bold text-2xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">O-D Bot</span>
+          <div className="flex items-center">
+            <img src={logo} alt="OD Bot" className="h-16 w-auto -my-4 -ml-4" />
           </div>
           <div className="hidden md:flex gap-10 text-sm font-semibold text-gray-400">
             <a href="#features" className="hover:text-cyan-400 transition-colors">Features</a>
@@ -157,11 +155,8 @@ export function LandingPage() {
       {/* Footer */}
       <footer className="py-10 border-t border-white/5 bg-black/50">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">
-              <Bot className="w-4 h-4 text-gray-400" />
-            </div>
-            <span className="font-bold text-gray-400 tracking-tight">O-D Bot</span>
+          <div className="flex items-center">
+            <img src={logo} alt="OD Bot" className="h-10 w-auto -my-2 -ml-2 opacity-85 hover:opacity-100 transition-opacity" />
           </div>
           <p className="text-gray-500 text-sm font-medium">© {new Date().getFullYear()} All rights reserved.</p>
           <div className="flex gap-6 text-sm font-medium text-gray-500">
