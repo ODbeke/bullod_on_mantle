@@ -80,9 +80,9 @@ main {
 }
 
 .logo-img {
-  height: clamp(80px, 12vw, 110px);
+  height: clamp(160px, 24vw, 220px);
   width: auto;
-  margin: -25px 0 -25px -10px;
+  margin: -65px 0 -65px -25px;
   opacity: 0.95;
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
