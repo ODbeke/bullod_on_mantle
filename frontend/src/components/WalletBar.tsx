@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Activity, LogOut, Wallet, Bell, Fuel } from "lucide-react";
+import { LogOut, Wallet, Bell, Fuel } from "lucide-react";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
+import logo from "../assets/logo.png";
 
 type Props = {
   onMint: () => void;
@@ -23,9 +24,8 @@ export function WalletBar({ onMint, balance = 0 }: Props) {
 
   return (
     <div className="wallet-bar">
-      <div>
-        <span className="eyebrow"><Activity size={14} /> Mantle Sepolia</span>
-        <h1>OD Bot Hedge Dashboard</h1>
+      <div className="logo-container">
+        <img src={logo} alt="OD Bot" className="logo-img" />
       </div>
       <div className="wallet-actions">
         {isConnected && (
