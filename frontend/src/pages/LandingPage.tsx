@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight, Bot, LineChart, Shield, Zap } from "lucide-react";
 import logo from "../assets/logo.png";
+import { SwirlBackground } from "../components/SwirlBackground";
 
 export function LandingPage() {
   // 1. Mouse following glow effect state
@@ -54,6 +55,9 @@ export function LandingPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white overflow-hidden relative font-sans">
+      {/* Interactive WebGL-style swirl fluid particle background */}
+      <SwirlBackground />
+
       {/* Soft light glow effect that follows the user's mouse */}
       <div 
         className="pointer-events-none fixed inset-0 z-30 transition-opacity duration-300"
