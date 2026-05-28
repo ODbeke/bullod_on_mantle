@@ -221,10 +221,6 @@ export function LandingPage() {
       {/* Trust Section */}
       <section className="py-24 border-t border-white/5 bg-gradient-to-b from-transparent to-blue-950/20">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          {/* Bold and centered header */}
-          <h2 className="text-3xl md:text-5xl font-black mb-16 text-white tracking-tight text-center">
-            Built for modern traders
-          </h2>
           <div className="flex flex-wrap justify-center gap-12 md:gap-24">
             <div className="flex flex-col items-center">
               <span className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-3 drop-shadow-lg">&lt;10ms</span>
