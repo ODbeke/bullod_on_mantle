@@ -71,7 +71,7 @@ export function LandingPage() {
       <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-cyan-900/20 rounded-full blur-[150px] pointer-events-none translate-y-1/2 -translate-x-1/3" />
 
       {/* Navbar */}
-      <nav className="relative z-50 px-6 py-6 border-b border-white/5 backdrop-blur-md bg-[#0a0a0a]/50">
+      <nav className="relative z-50 px-6 py-6 bg-transparent">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center">
             <img src={logo} alt="OD Bot" className="h-[180px] md:h-[220px] w-auto -my-[65px] -ml-[25px] hover:scale-[1.02] transition-transform duration-200 cursor-pointer" />
@@ -239,7 +239,7 @@ export function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-10 border-t border-white/5 bg-black/50">
+      <footer className="py-10 bg-transparent">
         <div className="max-w-7xl mx-auto px-6 flex justify-center items-center">
           <p className="text-gray-500 text-sm font-medium">© {new Date().getFullYear()} All rights reserved.</p>
         </div>
