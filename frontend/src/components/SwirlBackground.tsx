@@ -72,7 +72,7 @@ export function SwirlBackground() {
         py: y,
         vx: (Math.random() - 0.5) * 1.5,
         vy: (Math.random() - 0.5) * 1.5,
-        size: Math.random() * 1.6 + 0.8,
+        size: Math.random() * 2.2 + 1.2,
         color: colors[Math.floor(Math.random() * colors.length)],
         angle: Math.random() * Math.PI * 2,
         speed: Math.random() * 0.05 + 0.02,
@@ -85,9 +85,8 @@ export function SwirlBackground() {
     const render = () => {
       time += 0.003;
 
-      // Soft clear with trailing opacity to create fluid lines
-      ctx.fillStyle = "rgba(10, 10, 10, 0.07)";
-      ctx.fillRect(0, 0, width, height);
+      // Fully clear the canvas each frame to prevent trails
+      ctx.clearRect(0, 0, width, height);
 
       // Define target attractor
       const mouse = mouseRef.current;
@@ -152,14 +151,11 @@ export function SwirlBackground() {
           p.vy = (Math.random() - 0.5) * 1.5;
         }
 
-        // Draw particle trail vector
+        // Draw particle as an elegant glowing circular dot
         ctx.beginPath();
-        ctx.moveTo(p.px, p.py);
-        ctx.lineTo(p.x, p.y);
-        ctx.strokeStyle = p.color;
-        ctx.lineWidth = p.size;
-        ctx.lineCap = "round";
-        ctx.stroke();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.fill();
       }
 
       animationFrameId = requestAnimationFrame(render);
