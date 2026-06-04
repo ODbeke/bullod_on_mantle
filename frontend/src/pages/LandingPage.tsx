@@ -261,7 +261,7 @@ export function LandingPage() {
           }}>▶ START</Link>
         </motion.div>
 
-        {/* ═══════════ BOT SCENE — side by side below content ═══════════ */}
+        {/* BOT SCENE — two robots floating freely on the dark background */}
         <div style={{
           display: "flex",
           justifyContent: "space-between",
@@ -270,7 +270,7 @@ export function LandingPage() {
           maxWidth: "1100px",
           margin: "0 auto",
         }}>
-          {/* Left bot */}
+          {/* Left bot — no wrapper styling, image floats directly */}
           <motion.div
             initial={{ opacity: 0, x: -40 }}
             animate={{ opacity: 1, x: 0 }}
@@ -279,6 +279,7 @@ export function LandingPage() {
               flex: "0 0 auto",
               width: "clamp(220px, 28vw, 380px)",
               animation: "botFloat 4s ease-in-out infinite",
+              background: "none",
             }}
           >
             <img
@@ -286,17 +287,16 @@ export function LandingPage() {
               alt="Cyan trading bot"
               style={{
                 width: "100%",
+                display: "block",
                 imageRendering: "pixelated",
-                filter: "drop-shadow(0 0 20px rgba(0,180,216,0.7)) drop-shadow(0 0 8px #00f5d4)",
-                borderRadius: "0px",
               }}
             />
           </motion.div>
 
-          {/* Middle spacer — keeps bots apart */}
+          {/* Middle spacer */}
           <div style={{ flex: "1 1 auto", minWidth: "80px" }} />
 
-          {/* Right bot */}
+          {/* Right bot — no wrapper styling, image floats directly */}
           <motion.div
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
@@ -305,6 +305,7 @@ export function LandingPage() {
               flex: "0 0 auto",
               width: "clamp(220px, 28vw, 380px)",
               animation: "botFloatR 4.6s ease-in-out infinite 0.9s",
+              background: "none",
             }}
           >
             <img
@@ -312,9 +313,8 @@ export function LandingPage() {
               alt="Purple trading bot"
               style={{
                 width: "100%",
+                display: "block",
                 imageRendering: "pixelated",
-                filter: "drop-shadow(0 0 20px rgba(114,9,183,0.8)) drop-shadow(0 0 8px #c77dff)",
-                borderRadius: "0px",
               }}
             />
           </motion.div>
