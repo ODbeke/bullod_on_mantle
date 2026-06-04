@@ -5,6 +5,7 @@ import { BotModal } from "../components/BotModal";
 import { MarketChart } from "../components/MarketChart";
 import { WalletBar } from "../components/WalletBar";
 import { contractsConfigured, depositAndAllocate, mintMockUsdc, deallocateBot } from "../lib/contracts";
+import { PixelBackground } from "../components/PixelBackground";
 import { bots, type Bot } from "../lib/bots";
 import { useVaultData } from "../lib/useVaultData";
 
@@ -99,7 +100,7 @@ export function Dashboard() {
 
   return (
     <main>
-      <div className="background-grid" />
+      <PixelBackground />
       <WalletBar onMint={handleMint} balance={userData.walletBalance} />
       <section className="overview">
         <div className="operations-info">
