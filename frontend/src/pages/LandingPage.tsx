@@ -74,45 +74,35 @@ export function LandingPage() {
     let h = (canvas.height = window.innerHeight);
     const onResize = () => { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; };
     window.addEventListener("resize", onResize);
-    const onMove = (e: MouseEvent) => { mouseRef.current.x = e.clientX; mouseRef.current.y = e.clientY; mouseRef.current.active = true; };
-    window.addEventListener("mousemove", onMove);
+    
     const COLS = ["#00b4d8cc", "#00f5d4aa", "#7209b7aa", "#4361ee88", "#06d6a0aa"];
     const particles = Array.from({ length: 140 }, () => ({
       x: Math.random() * w, y: Math.random() * h,
-      vx: (Math.random() - 0.5) * 1.1, vy: (Math.random() - 0.5) * 1.1,
+      vx: (Math.random() - 0.5) * 0.3, // Slow drift
+      vy: (Math.random() - 0.5) * 0.3, 
       size: (Math.floor(Math.random() * 3) + 1) * 2,
       color: COLS[Math.floor(Math.random() * COLS.length)],
-      angle: Math.random() * Math.PI * 2,
-      spin: (Math.random() - 0.5) * 0.018,
     }));
-    let time = 0;
+    
     const render = () => {
-      time += 0.003;
       ctx.clearRect(0, 0, w, h);
-      const m = mouseRef.current;
-      if (m.active) { m.tx += (m.x - m.tx) * 0.07; m.ty += (m.y - m.ty) * 0.07; }
-      else { m.tx += (w / 2 + Math.cos(time * 1.5) * w * 0.2 - m.tx) * 0.04; m.ty += (h / 2 + Math.sin(time * 2.5) * h * 0.15 - m.ty) * 0.04; }
       for (const p of particles) {
-        const dx = m.tx - p.x, dy = m.ty - p.y;
-        const dist = Math.sqrt(dx * dx + dy * dy) + 0.1;
-        const maxD = Math.max(w, h) * 0.5;
-        const force = Math.max(0, (maxD - dist) / maxD);
-        p.angle += p.spin;
-        p.vx += (dx / dist) * force * 0.05 + (-dy / dist) * force * 0.14 + Math.cos(p.angle) * 0.012;
-        p.vy += (dy / dist) * force * 0.05 + (dx / dist) * force * 0.14 + Math.sin(p.angle) * 0.012;
-        p.vx *= 0.97; p.vy *= 0.97;
-        p.x += p.vx; p.y += p.vy;
-        if (p.x < 0 || p.x > w || p.y < 0 || p.y > h) {
-          p.x = Math.random() * w; p.y = Math.random() * h;
-          p.vx = (Math.random() - 0.5) * 1.1; p.vy = (Math.random() - 0.5) * 1.1;
-        }
+        p.x += p.vx; 
+        p.y += p.vy;
+        
+        // Wrap around smoothly
+        if (p.x < -10) p.x = w + 10;
+        if (p.x > w + 10) p.x = -10;
+        if (p.y < -10) p.y = h + 10;
+        if (p.y > h + 10) p.y = -10;
+        
         ctx.fillStyle = p.color;
         ctx.fillRect(Math.round(p.x), Math.round(p.y), p.size, p.size);
       }
       animId = requestAnimationFrame(render);
     };
     render();
-    return () => { cancelAnimationFrame(animId); window.removeEventListener("resize", onResize); window.removeEventListener("mousemove", onMove); };
+    return () => { cancelAnimationFrame(animId); window.removeEventListener("resize", onResize); };
   }, []);
 
   return (
