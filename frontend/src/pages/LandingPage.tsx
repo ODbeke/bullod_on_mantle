@@ -277,11 +277,11 @@ export function LandingPage() {
           position: "absolute",
           bottom: "4px",
           left: "-120px",
-          width: "90px",
-          height: "90px",
+          width: "63px",
+          height: "63px",
           animation: "robotSlide 8.5s linear infinite",
         }}>
-          <svg viewBox="0 0 18 18" width="90" height="90" style={{ imageRendering: "pixelated", display: "block" }}>
+          <svg viewBox="0 0 18 18" width="63" height="63" style={{ imageRendering: "pixelated", display: "block" }}>
             {/* Head */}
             <rect x="5" y="0" width="8" height="6" fill="#00b4d8" />
             {/* Eyes */}
