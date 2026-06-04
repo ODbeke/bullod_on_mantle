@@ -149,9 +149,9 @@ export function LandingPage() {
 
       {/* Floating coins & platforms */}
       <div style={{ position: "absolute", inset: 0, zIndex: 3, pointerEvents: "none" }}>
-        <PixelCoin style={{ position: "absolute", top: "18%", left: "12%" }} />
-        <PixelCoin style={{ position: "absolute", top: "24%", right: "11%" }} />
-        <PixelCoin style={{ position: "absolute", top: "10%", left: "50%", transform: "translateX(-50%)" }} />
+        <PixelCoin style={{ position: "absolute", top: "26%", left: "7.5%" }} />
+        <PixelCoin style={{ position: "absolute", top: "18%", right: "6.5%" }} />
+        <PixelCoin style={{ position: "absolute", top: "22%", left: "50%", transform: "translateX(-50%)" }} />
         <PixelPlatform style={{ position: "absolute", top: "30%", left: "6%", opacity: 0.45 }} />
         <PixelPlatform style={{ position: "absolute", top: "22%", right: "5%", opacity: 0.45 }} />
       </div>
