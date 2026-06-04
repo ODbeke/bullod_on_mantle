@@ -164,8 +164,8 @@ export function LandingPage() {
         background: "transparent",
       }}>
         <img src={logo} alt="OD Bot" style={{
-          height: "90px", width: "auto",
-          marginLeft: "-16px", marginTop: "-20px", marginBottom: "-20px",
+          height: "150px", width: "auto",
+          marginLeft: "-16px", marginTop: "-45px", marginBottom: "-45px",
           imageRendering: "pixelated",
           filter: "drop-shadow(0 0 10px #00b4d8)",
         }} />
