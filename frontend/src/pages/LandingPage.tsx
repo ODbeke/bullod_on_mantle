@@ -48,18 +48,23 @@ export function LandingPage() {
   // Typing effect
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    const handleType = () => {
-      if (!isDeleting) {
-        setTypedText(fullText.slice(0, typedText.length + 1));
-        if (typedText === fullText) { timer = setTimeout(() => setIsDeleting(true), 3000); return; }
-        timer = setTimeout(handleType, 120);
+    if (!isDeleting) {
+      if (typedText !== fullText) {
+        timer = setTimeout(() => {
+          setTypedText(fullText.slice(0, typedText.length + 1));
+        }, 100);
       } else {
-        setTypedText(fullText.slice(0, typedText.length - 1));
-        if (typedText === "") { setIsDeleting(false); timer = setTimeout(handleType, 900); return; }
-        timer = setTimeout(handleType, 60);
+        timer = setTimeout(() => setIsDeleting(true), 3000);
       }
-    };
-    timer = setTimeout(handleType, isDeleting ? 60 : 120);
+    } else {
+      if (typedText !== "") {
+        timer = setTimeout(() => {
+          setTypedText(fullText.slice(0, typedText.length - 1));
+        }, 50);
+      } else {
+        timer = setTimeout(() => setIsDeleting(false), 900);
+      }
+    }
     return () => clearTimeout(timer);
   }, [typedText, isDeleting]);
 
