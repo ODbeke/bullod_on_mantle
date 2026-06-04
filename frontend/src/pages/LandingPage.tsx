@@ -43,8 +43,6 @@ export function LandingPage() {
   const [typedText, setTypedText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const fullText = "POWERED BY AI.";
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const mouseRef = useRef({ x: -1000, y: -1000, tx: -1000, ty: -1000, active: false });
 
   // Typing effect
   useEffect(() => {
