@@ -287,9 +287,8 @@ export function LandingPage() {
               style={{
                 width: "100%",
                 imageRendering: "pixelated",
-                // mix-blend-mode:screen makes white/grey transparent on dark bg
-                mixBlendMode: "screen",
-                filter: "drop-shadow(0 0 18px rgba(0,180,216,0.6)) drop-shadow(0 0 6px #00f5d4)",
+                filter: "drop-shadow(0 0 20px rgba(0,180,216,0.7)) drop-shadow(0 0 8px #00f5d4)",
+                borderRadius: "0px",
               }}
             />
           </motion.div>
@@ -314,8 +313,8 @@ export function LandingPage() {
               style={{
                 width: "100%",
                 imageRendering: "pixelated",
-                mixBlendMode: "screen",
-                filter: "drop-shadow(0 0 18px rgba(114,9,183,0.7)) drop-shadow(0 0 6px #c77dff)",
+                filter: "drop-shadow(0 0 20px rgba(114,9,183,0.8)) drop-shadow(0 0 8px #c77dff)",
+                borderRadius: "0px",
               }}
             />
           </motion.div>
