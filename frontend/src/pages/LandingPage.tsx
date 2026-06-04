@@ -24,9 +24,9 @@ const PixelCoin = ({ style }: { style?: React.CSSProperties }) => (
 
 const PixelPlatform = ({ style }: { style?: React.CSSProperties }) => (
   <svg width="112" height="40" viewBox="0 0 14 5" style={{ imageRendering: "pixelated", ...style }}>
-    <rect x="0" y="0" width="14" height="2" fill="#00b4d8" opacity="0.6" />
-    <rect x="0" y="2" width="14" height="1" fill="#0077b6" opacity="0.6" />
-    <rect x="0" y="3" width="14" height="2" fill="#1a1a2e" opacity="0.8" />
+    <rect x="0" y="0" width="14" height="2" fill="#00b4d8" opacity="0.5" />
+    <rect x="0" y="2" width="14" height="1" fill="#0077b6" opacity="0.5" />
+    <rect x="0" y="3" width="14" height="2" fill="#1a1a2e" opacity="0.7" />
   </svg>
 );
 
@@ -123,9 +123,8 @@ export function LandingPage() {
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         @keyframes pixelBlink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
         @keyframes tickerScroll { from{transform:translateX(0)} to{transform:translateX(-50%)} }
-        @keyframes botFloat { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-10px)} }
-        @keyframes screenGlow { 0%,100%{filter:drop-shadow(0 0 12px #00b4d8) drop-shadow(0 0 4px #00f5d4)} 50%{filter:drop-shadow(0 0 24px #00b4d8) drop-shadow(0 0 8px #00f5d4)} }
-        @keyframes screenGlowPurple { 0%,100%{filter:drop-shadow(0 0 12px #7209b7) drop-shadow(0 0 4px #9d4edd)} 50%{filter:drop-shadow(0 0 24px #7209b7) drop-shadow(0 0 8px #c77dff)} }
+        @keyframes botFloat { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-12px)} }
+        @keyframes botFloatR { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-12px)} }
         * { box-sizing: border-box; margin: 0; padding: 0; }
       `}</style>
 
@@ -147,15 +146,20 @@ export function LandingPage() {
 
       {/* Floating coins & platforms */}
       <div style={{ position: "absolute", inset: 0, zIndex: 3, pointerEvents: "none" }}>
-        <PixelCoin style={{ position: "absolute", top: "18%", left: "22%" }} />
-        <PixelCoin style={{ position: "absolute", top: "26%", right: "22%" }} />
-        <PixelCoin style={{ position: "absolute", top: "12%", left: "50%", transform: "translateX(-50%)" }} />
-        <PixelPlatform style={{ position: "absolute", top: "32%", left: "16%", opacity: 0.4 }} />
-        <PixelPlatform style={{ position: "absolute", top: "22%", right: "14%", opacity: 0.4 }} />
+        <PixelCoin style={{ position: "absolute", top: "18%", left: "12%" }} />
+        <PixelCoin style={{ position: "absolute", top: "24%", right: "11%" }} />
+        <PixelCoin style={{ position: "absolute", top: "10%", left: "50%", transform: "translateX(-50%)" }} />
+        <PixelPlatform style={{ position: "absolute", top: "30%", left: "6%", opacity: 0.45 }} />
+        <PixelPlatform style={{ position: "absolute", top: "22%", right: "5%", opacity: 0.45 }} />
       </div>
 
-      {/* NAVBAR */}
-      <nav style={{ position: "relative", zIndex: 50, padding: "20px 40px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "transparent" }}>
+      {/* ═══════════ NAVBAR — full width, unchanged ═══════════ */}
+      <nav style={{
+        position: "relative", zIndex: 50,
+        padding: "20px 40px",
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        background: "transparent",
+      }}>
         <img src={logo} alt="OD Bot" style={{
           height: "90px", width: "auto",
           marginLeft: "-16px", marginTop: "-20px", marginBottom: "-20px",
@@ -173,152 +177,156 @@ export function LandingPage() {
         </motion.div>
       </nav>
 
-      {/* ═══════════════════════ HERO ═══════════════════════ */}
-      <section style={{ position: "relative", zIndex: 10, minHeight: "580px", display: "flex", alignItems: "flex-end", justifyContent: "center", padding: "20px 0 0" }}>
+      {/* ═══════════ HERO — full width centered text ═══════════ */}
+      <section style={{ position: "relative", zIndex: 10, padding: "32px 32px 0", textAlign: "center" }}>
 
-        {/* LEFT BOT — absolutely placed, bottom-anchored */}
+        {/* Badge */}
         <motion.div
-          initial={{ opacity: 0, x: -60 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
           style={{
-            position: "absolute",
-            bottom: 0,
-            left: "clamp(0px, 2vw, 40px)",
-            width: "clamp(200px, 26vw, 360px)",
-            zIndex: 15,
-            animation: "botFloat 4s ease-in-out infinite",
+            display: "inline-flex", alignItems: "center", gap: "10px",
+            padding: "8px 18px",
+            border: "2px solid #00b4d8",
+            boxShadow: "4px 4px 0 #005082, inset 0 0 16px rgba(0,180,216,0.1)",
+            fontSize: "8px", color: "#00f5d4", marginBottom: "32px",
           }}
         >
-          <img
-            src={pixelBotLeft}
-            alt="Cyan trading bot"
-            style={{
-              width: "100%",
-              imageRendering: "pixelated",
-              animation: "screenGlow 3s ease-in-out infinite",
-            }}
-          />
+          <span style={{ display: "inline-block", width: "8px", height: "8px", background: "#00f5d4", boxShadow: "0 0 6px #00f5d4", animation: "pixelBlink 1s steps(1) infinite" }} />
+          SYSTEM ONLINE V2.0
         </motion.div>
 
-        {/* CENTER CONTENT */}
-        <div style={{ textAlign: "center", padding: "0 clamp(200px, 27vw, 380px)", zIndex: 12, paddingBottom: "32px" }}>
+        {/* Headline */}
+        <motion.h1
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          style={{
+            fontSize: "clamp(22px, 4.5vw, 54px)",
+            lineHeight: 1.55,
+            color: "#00b4d8",
+            textShadow: "4px 4px 0 #005082, 0 0 32px rgba(0,180,216,0.45)",
+            marginBottom: "20px",
+            textTransform: "uppercase",
+            letterSpacing: "2px",
+          }}
+        >
+          AUTOMATED SMART<br />TRADING
+        </motion.h1>
 
-          {/* Badge */}
+        {/* Typed line */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          style={{
+            fontSize: "clamp(14px, 2.5vw, 28px)",
+            color: "#f4a261",
+            textShadow: "3px 3px 0 #7a3008",
+            marginBottom: "24px",
+            minHeight: "48px",
+          }}
+        >
+          <span>{typedText}</span>
+          <span style={{ animation: "pixelBlink 0.7s steps(1) infinite", color: "#00f5d4" }}>█</span>
+        </motion.div>
+
+        {/* Description */}
+        <motion.p
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          style={{ fontSize: "8px", color: "#90e0ef", lineHeight: 2.4, marginBottom: "36px" }}
+        >
+          ANALYZE MARKETS. EXECUTE TRADES FASTER.<br />
+          MAXIMIZE OPPORTUNITIES 24/7.
+        </motion.p>
+
+        {/* CTA Button */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          whileHover={{ scale: 1.06 }}
+          whileTap={{ scale: 0.96 }}
+          style={{ marginBottom: "60px" }}
+        >
+          <Link to="/dashboard" style={{
+            display: "inline-block", padding: "18px 48px",
+            background: "#f4a261", color: "#1a0a00",
+            fontFamily: "'Press Start 2P', monospace", fontSize: "14px",
+            textDecoration: "none", textTransform: "uppercase",
+            boxShadow: "6px 0 0 0 #7a3008, 0 6px 0 0 #7a3008, 6px 6px 0 0 #4a1c00, -6px 0 0 0 #f9c784, 0 -6px 0 0 #f9c784, 0 0 40px rgba(244,162,97,0.35)",
+          }}>▶ START</Link>
+        </motion.div>
+
+        {/* ═══════════ BOT SCENE — side by side below content ═══════════ */}
+        <div style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-end",
+          gap: "24px",
+          maxWidth: "1100px",
+          margin: "0 auto",
+        }}>
+          {/* Left bot */}
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            initial={{ opacity: 0, x: -40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
             style={{
-              display: "inline-flex", alignItems: "center", gap: "10px",
-              padding: "8px 18px",
-              border: "2px solid #00b4d8",
-              boxShadow: "4px 4px 0 #005082, inset 0 0 16px rgba(0,180,216,0.1)",
-              fontSize: "8px", color: "#00f5d4", marginBottom: "32px",
+              flex: "0 0 auto",
+              width: "clamp(220px, 28vw, 380px)",
+              animation: "botFloat 4s ease-in-out infinite",
             }}
           >
-            <span style={{ display: "inline-block", width: "8px", height: "8px", background: "#00f5d4", boxShadow: "0 0 6px #00f5d4", animation: "pixelBlink 1s steps(1) infinite" }} />
-            SYSTEM ONLINE V2.0
+            <img
+              src={pixelBotLeft}
+              alt="Cyan trading bot"
+              style={{
+                width: "100%",
+                imageRendering: "pixelated",
+                // mix-blend-mode:screen makes white/grey transparent on dark bg
+                mixBlendMode: "screen",
+                filter: "drop-shadow(0 0 18px rgba(0,180,216,0.6)) drop-shadow(0 0 6px #00f5d4)",
+              }}
+            />
           </motion.div>
 
-          {/* Headline */}
-          <motion.h1
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
+          {/* Middle spacer — keeps bots apart */}
+          <div style={{ flex: "1 1 auto", minWidth: "80px" }} />
+
+          {/* Right bot */}
+          <motion.div
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.75 }}
             style={{
-              fontSize: "clamp(18px, 3.2vw, 42px)",
-              lineHeight: 1.6,
-              color: "#00b4d8",
-              textShadow: "4px 4px 0 #005082, 0 0 32px rgba(0,180,216,0.45)",
-              marginBottom: "20px",
-              textTransform: "uppercase",
-              letterSpacing: "2px",
+              flex: "0 0 auto",
+              width: "clamp(220px, 28vw, 380px)",
+              animation: "botFloatR 4.6s ease-in-out infinite 0.9s",
             }}
           >
-            AUTOMATED SMART<br />TRADING
-          </motion.h1>
-
-          {/* Typed sub-headline */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            style={{
-              fontSize: "clamp(12px, 2vw, 22px)",
-              lineHeight: 1.8,
-              color: "#f4a261",
-              textShadow: "3px 3px 0 #7a3008",
-              marginBottom: "28px",
-              minHeight: "48px",
-            }}
-          >
-            <span>{typedText}</span>
-            <span style={{ animation: "pixelBlink 0.7s steps(1) infinite", color: "#00f5d4" }}>█</span>
-          </motion.div>
-
-          {/* Description */}
-          <motion.p
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            style={{ fontSize: "8px", color: "#90e0ef", lineHeight: 2.4, marginBottom: "40px" }}
-          >
-            ANALYZE MARKETS. EXECUTE TRADES FASTER.<br />
-            MAXIMIZE OPPORTUNITIES 24/7.
-          </motion.p>
-
-          {/* CTA Button */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            whileHover={{ scale: 1.06 }}
-            whileTap={{ scale: 0.96 }}
-          >
-            <Link to="/dashboard" style={{
-              display: "inline-block", padding: "18px 44px",
-              background: "#f4a261", color: "#1a0a00",
-              fontFamily: "'Press Start 2P', monospace", fontSize: "13px",
-              textDecoration: "none", textTransform: "uppercase",
-              boxShadow: "6px 0 0 0 #7a3008, 0 6px 0 0 #7a3008, 6px 6px 0 0 #4a1c00, -6px 0 0 0 #f9c784, 0 -6px 0 0 #f9c784, 0 0 40px rgba(244,162,97,0.35)",
-            }}>
-              ▶ START
-            </Link>
+            <img
+              src={pixelBotRight}
+              alt="Purple trading bot"
+              style={{
+                width: "100%",
+                imageRendering: "pixelated",
+                mixBlendMode: "screen",
+                filter: "drop-shadow(0 0 18px rgba(114,9,183,0.7)) drop-shadow(0 0 6px #c77dff)",
+              }}
+            />
           </motion.div>
         </div>
-
-        {/* RIGHT BOT — absolutely placed, bottom-anchored */}
-        <motion.div
-          initial={{ opacity: 0, x: 60 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, delay: 0.7 }}
-          style={{
-            position: "absolute",
-            bottom: 0,
-            right: "clamp(0px, 2vw, 40px)",
-            width: "clamp(200px, 26vw, 360px)",
-            zIndex: 15,
-            animation: "botFloat 4.5s ease-in-out infinite 0.8s",
-          }}
-        >
-          <img
-            src={pixelBotRight}
-            alt="Purple trading bot"
-            style={{
-              width: "100%",
-              imageRendering: "pixelated",
-              animation: "screenGlowPurple 3.5s ease-in-out infinite",
-            }}
-          />
-        </motion.div>
       </section>
 
-      {/* Pixel ground bar */}
+      {/* Pixel ground */}
       <div style={{ position: "relative", zIndex: 5, height: "8px", background: "#00b4d8", boxShadow: "0 -4px 0 #0096c7, 0 4px 0 #005082" }} />
       <div style={{ position: "relative", zIndex: 5, height: "16px", background: "#003f5c" }} />
 
-      {/* ═══════════════════════ FEATURES ═══════════════════════ */}
+      {/* ═══════════ FEATURES ═══════════ */}
       <section style={{ position: "relative", zIndex: 10, padding: "72px 32px" }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "20px" }}>
           {[
@@ -350,7 +358,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ═══════════════════════ STATS ═══════════════════════ */}
+      {/* ═══════════ STATS ═══════════ */}
       <div style={{ height: "4px", background: "#00b4d8", opacity: 0.25 }} />
       <section style={{ position: "relative", zIndex: 10, padding: "64px 32px" }}>
         <div style={{ maxWidth: "800px", margin: "0 auto", display: "flex", justifyContent: "center", gap: "48px", flexWrap: "wrap" }}>
@@ -367,14 +375,14 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ═══════════════════════ TICKER ═══════════════════════ */}
+      {/* ═══════════ TICKER ═══════════ */}
       <div style={{ position: "relative", zIndex: 10, borderTop: "4px solid #00b4d8", borderBottom: "4px solid #00b4d8", background: "#040810", padding: "12px 0", overflow: "hidden", whiteSpace: "nowrap" }}>
         <div style={{ display: "inline-block", animation: "tickerScroll 20s linear infinite" }}>
           {Array.from({ length: 4 }, (_, i) => <TickerItem key={i} />)}
         </div>
       </div>
 
-      {/* ═══════════════════════ FOOTER ═══════════════════════ */}
+      {/* ═══════════ FOOTER ═══════════ */}
       <footer style={{ position: "relative", zIndex: 10, padding: "28px 32px", textAlign: "center", background: "transparent" }}>
         <p style={{ fontSize: "7px", color: "#2a3550" }}>© {new Date().getFullYear()} OD BOT. ALL RIGHTS RESERVED.</p>
       </footer>
