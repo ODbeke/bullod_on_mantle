@@ -2,8 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import logo from "../assets/logo.png";
-import pixelBotLeft from "../assets/pixel_bot_left.png";
-import pixelBotRight from "../assets/pixel_bot_right.png";
 
 const PixelCoin = ({ style }: { style?: React.CSSProperties }) => (
   <motion.div
@@ -260,66 +258,6 @@ export function LandingPage() {
             boxShadow: "6px 0 0 0 #7a3008, 0 6px 0 0 #7a3008, 6px 6px 0 0 #4a1c00, -6px 0 0 0 #f9c784, 0 -6px 0 0 #f9c784, 0 0 40px rgba(244,162,97,0.35)",
           }}>▶ START</Link>
         </motion.div>
-
-        {/* BOT SCENE */}
-        <div style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-end",
-          gap: "24px",
-          maxWidth: "1100px",
-          margin: "0 auto",
-        }}>
-          {/* Left bot */}
-          <motion.div
-            initial={{ opacity: 0, x: -40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            style={{
-              flex: "0 0 auto",
-              width: "clamp(132px, 17vw, 228px)",
-              animation: "botFloat 4s ease-in-out infinite",
-            }}
-          >
-            <img
-              src={pixelBotLeft}
-              alt="Cyan trading bot"
-              style={{
-                width: "100%",
-                display: "block",
-                imageRendering: "pixelated",
-                mixBlendMode: "lighten",
-              }}
-            />
-          </motion.div>
-
-          {/* Middle spacer */}
-          <div style={{ flex: "1 1 auto", minWidth: "60px" }} />
-
-          {/* Right bot — flipped to face left toward center */}
-          <motion.div
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.75 }}
-            style={{
-              flex: "0 0 auto",
-              width: "clamp(132px, 17vw, 228px)",
-              animation: "botFloatR 4.6s ease-in-out infinite 0.9s",
-            }}
-          >
-            <img
-              src={pixelBotRight}
-              alt="Purple trading bot"
-              style={{
-                width: "100%",
-                display: "block",
-                imageRendering: "pixelated",
-                mixBlendMode: "lighten",
-                transform: "scaleX(-1)",
-              }}
-            />
-          </motion.div>
-        </div>
       </section>
 
       {/* Pixel ground */}
