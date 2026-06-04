@@ -261,7 +261,7 @@ export function LandingPage() {
           }}>▶ START</Link>
         </motion.div>
 
-        {/* BOT SCENE — two robots floating freely on the dark background */}
+        {/* BOT SCENE */}
         <div style={{
           display: "flex",
           justifyContent: "space-between",
@@ -270,16 +270,15 @@ export function LandingPage() {
           maxWidth: "1100px",
           margin: "0 auto",
         }}>
-          {/* Left bot — no wrapper styling, image floats directly */}
+          {/* Left bot */}
           <motion.div
             initial={{ opacity: 0, x: -40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
             style={{
               flex: "0 0 auto",
-              width: "clamp(220px, 28vw, 380px)",
+              width: "clamp(132px, 17vw, 228px)",
               animation: "botFloat 4s ease-in-out infinite",
-              background: "none",
             }}
           >
             <img
@@ -289,23 +288,23 @@ export function LandingPage() {
                 width: "100%",
                 display: "block",
                 imageRendering: "pixelated",
+                mixBlendMode: "lighten",
               }}
             />
           </motion.div>
 
           {/* Middle spacer */}
-          <div style={{ flex: "1 1 auto", minWidth: "80px" }} />
+          <div style={{ flex: "1 1 auto", minWidth: "60px" }} />
 
-          {/* Right bot — no wrapper styling, image floats directly */}
+          {/* Right bot — flipped to face left toward center */}
           <motion.div
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.75 }}
             style={{
               flex: "0 0 auto",
-              width: "clamp(220px, 28vw, 380px)",
+              width: "clamp(132px, 17vw, 228px)",
               animation: "botFloatR 4.6s ease-in-out infinite 0.9s",
-              background: "none",
             }}
           >
             <img
@@ -315,6 +314,8 @@ export function LandingPage() {
                 width: "100%",
                 display: "block",
                 imageRendering: "pixelated",
+                mixBlendMode: "lighten",
+                transform: "scaleX(-1)",
               }}
             />
           </motion.div>
