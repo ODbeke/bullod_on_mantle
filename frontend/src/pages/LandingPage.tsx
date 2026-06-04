@@ -123,6 +123,11 @@ export function LandingPage() {
         @keyframes tickerScroll { from{transform:translateX(0)} to{transform:translateX(-50%)} }
         @keyframes botFloat { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-12px)} }
         @keyframes botFloatR { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-12px)} }
+        @keyframes robotSlide {
+          0%   { left: -120px; }
+          41%  { left: 110%; }
+          100% { left: 110%; }
+        }
         * { box-sizing: border-box; margin: 0; padding: 0; }
       `}</style>
 
@@ -259,6 +264,58 @@ export function LandingPage() {
           }}>▶ START</Link>
         </motion.div>
       </section>
+
+      {/* Sliding robot just above the ground line */}
+      <div style={{
+        position: "relative", zIndex: 20,
+        height: "96px",
+        overflow: "hidden",
+        pointerEvents: "none",
+      }}>
+        {/* Pixel art robot SVG — faces right, slides L→R */}
+        <div style={{
+          position: "absolute",
+          bottom: "4px",
+          left: "-120px",
+          width: "90px",
+          height: "90px",
+          animation: "robotSlide 8.5s linear infinite",
+        }}>
+          <svg viewBox="0 0 18 18" width="90" height="90" style={{ imageRendering: "pixelated", display: "block" }}>
+            {/* Head */}
+            <rect x="5" y="0" width="8" height="6" fill="#00b4d8" />
+            {/* Eyes */}
+            <rect x="6" y="1" width="2" height="2" fill="#ffd60a" />
+            <rect x="10" y="1" width="2" height="2" fill="#ffd60a" />
+            {/* Mouth */}
+            <rect x="7" y="4" width="4" height="1" fill="#00f5d4" />
+            {/* Antenna */}
+            <rect x="9" y="0" width="1" height="2" fill="#00b4d8" />
+            <rect x="9" y="0" width="2" height="1" fill="#00f5d4" />
+            {/* Neck */}
+            <rect x="7" y="6" width="4" height="1" fill="#0077b6" />
+            {/* Body */}
+            <rect x="4" y="7" width="10" height="6" fill="#0096c7" />
+            {/* Chest panel */}
+            <rect x="6" y="8" width="6" height="3" fill="#00b4d8" />
+            <rect x="7" y="9" width="1" height="1" fill="#00f5d4" />
+            <rect x="9" y="9" width="1" height="1" fill="#f4a261" />
+            <rect x="11" y="9" width="1" height="1" fill="#00f5d4" />
+            {/* Left arm */}
+            <rect x="1" y="7" width="3" height="5" fill="#0077b6" />
+            <rect x="0" y="10" width="2" height="2" fill="#00b4d8" />
+            {/* Right arm — extended forward (facing right) */}
+            <rect x="14" y="7" width="3" height="5" fill="#0077b6" />
+            <rect x="16" y="9" width="2" height="2" fill="#00b4d8" />
+            {/* Legs */}
+            <rect x="5" y="13" width="3" height="4" fill="#005082" />
+            <rect x="10" y="13" width="3" height="4" fill="#005082" />
+            {/* Feet */}
+            <rect x="4" y="16" width="4" height="2" fill="#0077b6" />
+            <rect x="10" y="16" width="4" height="2" fill="#0077b6" />
+          </svg>
+        </div>
+      </div>
 
       {/* Pixel ground */}
       <div style={{ position: "relative", zIndex: 5, height: "8px", background: "#00b4d8", boxShadow: "0 -4px 0 #0096c7, 0 4px 0 #005082" }} />
