@@ -368,8 +368,8 @@ export async function fetchUserVaultData(account: Address): Promise<UserVaultDat
       );
 
       if (tradeIds.length > 0) {
-        // Take the last 150 trade IDs (newest/latest) for instant parallel loading
-        const targetIds = tradeIds.slice(-150);
+        // Take the last 50 trade IDs (newest/latest) for instant parallel loading to avoid RPC rate limits
+        const targetIds = tradeIds.slice(-50);
         const results = await Promise.all(
           targetIds.map(async (tid) => {
             try {
@@ -427,7 +427,7 @@ export async function fetchUserVaultData(account: Address): Promise<UserVaultDat
     return { walletBalance, availableBalance, allocations, activeBotCount, totalAllocated, trades, totalPnl, openTradeCount, closedTradeCount };
   } catch (globalErr) {
     console.error("Critical error in fetchUserVaultData:", globalErr);
-    return fallbackData;
+    throw globalErr;
   }
 }
 
