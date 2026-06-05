@@ -59,6 +59,13 @@ Transitioning the UI from a modern, blurred "glassmorphism" look to a strict 16-
 - **Challenge:** During intense backend development, a `dev.log` file silently ballooned to over 117MB, breaking GitHub's push limits and failing Vercel deployments.
 - **Solution:** Executed an emergency cache purge (`git rm --cached`) and strict `.gitignore` enforcement to salvage the repository state and restore deployment pipelines.
 
+## 🔗 Deployed Contracts
+
+If you need to interact with the contracts directly or add them to your environment, here are the deployed addresses on **Mantle Sepolia**:
+
+- **Mock USDC (mUSDC):** `0x84bF6BA683178B3Fa97882bB00bC65d219aB38b7`
+- **Trading Vault:** `0x35143Da0E758d1F1dc688c13Ef5471B1f26449c8`
+
 ## 📜 Getting Started
 
 1. **Install Dependencies:**
@@ -67,10 +74,10 @@ Transitioning the UI from a modern, blurred "glassmorphism" look to a strict 16-
    npm install
    ```
 2. **Environment Variables:**
-   Create a `.env` file in the frontend directory with the deployed Mantle Sepolia contract addresses:
+   Create a `.env` file in the frontend directory and insert the required contract addresses (see Deployed Contracts above):
    ```env
-   VITE_MOCK_USDC_ADDRESS=0x84bF6BA683178B3Fa97882bB00bC65d219aB38b7
-   VITE_TRADING_VAULT_ADDRESS=0x35143Da0E758d1F1dc688c13Ef5471B1f26449c8
+   VITE_MOCK_USDC_ADDRESS=<musdc_address>
+   VITE_TRADING_VAULT_ADDRESS=<vault_address>
    ```
 3. **Run Locally:**
    ```bash
