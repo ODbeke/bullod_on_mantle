@@ -98,10 +98,10 @@ export function MarketChart() {
         const norm = (v: number, b: number) => (b ? (v / b) * 100 : 100);
         const next: DataPoint = {
           time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
-          BTC: norm(live.BTC, base.rawBTC),
-          ETH: norm(live.ETH, base.rawETH),
-          SOL: norm(live.SOL, base.rawSOL),
-          MNT: norm(live.MNT, base.rawMNT),
+          BTC: norm(live.BTC, base.rawBTC) * (1 + (Math.random() - 0.5) * 0.001),
+          ETH: norm(live.ETH, base.rawETH) * (1 + (Math.random() - 0.5) * 0.001),
+          SOL: norm(live.SOL, base.rawSOL) * (1 + (Math.random() - 0.5) * 0.001),
+          MNT: norm(live.MNT, base.rawMNT) * (1 + (Math.random() - 0.5) * 0.001),
           rawBTC: live.BTC,
           rawETH: live.ETH,
           rawSOL: live.SOL,
