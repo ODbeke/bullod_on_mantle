@@ -1,8 +1,10 @@
-# 🤖 BODBOT (bullod_on_mantle)
+# BODBOT  🤖
 
-BODBOT is a comprehensive decentralized application (dApp) that bridges the gap between AI-driven algorithmic trading and decentralized finance (DeFi) on the Mantle Network. Designed with a striking 16-bit retro cyberpunk aesthetic, BODBOT allows users to allocate capital (mUSDC) to autonomous trading "bots" (strategies) entirely on-chain.
+<img width="2606" height="1336" alt="header" src="https://github.com/user-attachments/assets/725cabc6-4d94-4b1d-8dff-a75f39b9607f" />
 
-## 🌟 Overview
+BODBOT is a comprehensive decentralized application (dApp) that bridges the gap between AI-driven algorithmic trading and decentralized finance (DeFi) on the Mantle Network. BODBOT allows users to allocate capital (mUSDC) to autonomous trading bots (strategies) entirely onchain.
+
+## Overview
 
 The platform simulates a professional algorithmic trading desk wrapped in a gamified, retro UI. Users can connect their Web3 wallets, mint testnet collateral, and deploy capital across a fleet of specialized AI trading agents (e.g., "Finn" for Intraday Momentum, or other agents for Reversal/Breakout strategies).
 
