@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Line, ResponsiveContainer, LineChart } from "recharts";
+import { Line, ResponsiveContainer, LineChart, YAxis } from "recharts";
 import type { DataPoint } from "./MarketChart";
 
 interface SparklineCardProps {
@@ -56,6 +56,7 @@ export function SparklineCard({ symbol, color, data, latestRaw }: SparklineCardP
       <div className="sparkline-card-chart">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={sparkData}>
+            <YAxis domain={["dataMin", "dataMax"]} hide />
             <Line
               type="monotone"
               dataKey="v"
