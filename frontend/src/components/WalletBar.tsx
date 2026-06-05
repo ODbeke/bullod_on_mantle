@@ -36,7 +36,7 @@ export function WalletBar({ onMint, balance = 0 }: Props) {
         )}
         <button className="ghost-button" type="button" onClick={onMint} disabled={!isConnected}>
           <Fuel size={18} />
-          Faucet
+          Mint mUSDC
         </button>
         {isConnected ? (
           <div className="wallet-dropdown-container">
