@@ -67,10 +67,10 @@ Transitioning the UI from a modern, blurred "glassmorphism" look to a strict 16-
    npm install
    ```
 2. **Environment Variables:**
-   Create a `.env` file in the frontend directory with your deployed Mantle Sepolia contract addresses:
+   Create a `.env` file in the frontend directory with the deployed Mantle Sepolia contract addresses:
    ```env
-   VITE_MOCK_USDC_ADDRESS=0x...
-   VITE_TRADING_VAULT_ADDRESS=0x...
+   VITE_MOCK_USDC_ADDRESS=0x84bF6BA683178B3Fa97882bB00bC65d219aB38b7
+   VITE_TRADING_VAULT_ADDRESS=0x35143Da0E758d1F1dc688c13Ef5471B1f26449c8
    ```
 3. **Run Locally:**
    ```bash
