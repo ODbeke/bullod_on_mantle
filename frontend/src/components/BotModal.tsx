@@ -66,7 +66,7 @@ export function BotModal({ bot, active, botAllocation, userTrades, onClose, onAc
               </label>
               <div className="button-group">
                 {active && (
-                  <button className="secondary-button" type="button" onClick={() => onDeallocate(bot.id, botAllocation)}>
+                  <button className="danger-button" type="button" onClick={() => onDeallocate(bot.id, botAllocation)}>
                     Withdraw mUSDC
                   </button>
                 )}
