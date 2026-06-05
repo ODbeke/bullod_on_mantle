@@ -212,7 +212,7 @@ h3 {
 .trade-row span {
   display: block;
   color: #90e0ef;
-  font-size: 8px;
+  font-size: 10px;
 }
 
 .status-line {
@@ -335,12 +335,12 @@ h3 {
 
 .chart-legend-symbol {
   color: var(--legend-color);
-  font-size: 8px;
+  font-size: 10px;
 }
 
 .chart-legend-value {
   color: #e2e8f0;
-  font-size: 8px;
+  font-size: 10px;
   min-width: 52px;
   text-align: right;
 }
