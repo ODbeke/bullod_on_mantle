@@ -2,23 +2,23 @@
 
 <img width="2606" height="1336" alt="header" src="https://github.com/user-attachments/assets/725cabc6-4d94-4b1d-8dff-a75f39b9607f" />
 
-BODBOT is a comprehensive decentralized application (dApp) that bridges the gap between AI-driven algorithmic trading and decentralized finance (DeFi) on the Mantle Network. BODBOT allows users to allocate capital (mUSDC) to autonomous trading bots (strategies) entirely on-chain.
+BODBOT is a comprehensive decentralized application (dApp) that bridges the gap between AI-driven algorithmic trading and decentralized finance (DeFi) on the Mantle Network. BODBOT allows users to allocate capital (mUSDC) to autonomous trading bots (strategies) entirely onchain.
 
 <br/>
 
-## 🎯 The Vision (Problem & Solution)
+## The Vision (Problem & Solution)
 
 ### The Problem
 Retail traders are consistently outperformed in the cryptocurrency markets by institutional algorithmic trading firms. Why? Because retail traders rely on emotion, sleep, and manual execution, whereas institutions rely on autonomous, logic-driven systems executing thousands of trades per second. Current DeFi platforms still force users to manually stare at charts, execute trades, and manage their own risk.
 
 ### The Solution
-BODBOT levels the playing field by decentralizing algorithmic trading. Instead of trading manually, users become **capital allocators**. You deposit funds into an on-chain vault and allocate your capital across a fleet of specialized, autonomous AI trading agents (e.g., Momentum scouts, Reversal hunters). The agents execute high-frequency strategies 24/7 on the Mantle Network, while you track your yields from a gamified, 16-bit cybernetic command center.
+BODBOT levels the playing field by decentralizing algorithmic trading. Instead of trading manually, users become **capital allocators**. You deposit funds into an onchain vault and allocate your capital across a fleet of specialized, autonomous AI trading agents (e.g., Momentum scouts, Reversal hunters). The agents execute high-frequency strategies 24/7 on the Mantle Network, while you track your yields from the command center and get notified on the Telegram bot.
 
 <br/>
 
-## 🌟 Overview
+## Overview
 
-The platform simulates a professional algorithmic trading desk wrapped in a retro UI. Users can connect their Web3 wallets, mint testnet collateral, and deploy capital across our AI trading fleet.
+The platform simulates a professional algorithmic trading desk. Users can connect their Web3 wallets, mint testnet collateral, and deploy capital across our AI trading fleet.
 
 The application is composed of three main architectural pillars:
 1. **Frontend:** A React/Vite application customized with a pixel-art design system and live Recharts data visualizations.
@@ -29,21 +29,20 @@ The application is composed of three main architectural pillars:
 
 ## 🚀 Key Features & Use Cases
 
-### 1. On-Chain Trading Vaults
+### 1. Onchain Trading Vaults
 - **Faucet Integration:** Users can mint 10,000 mUSDC directly from the dashboard, guarded by a smart cooldown system to prevent abuse.
 - **Capital Allocation:** Direct integration with Wagmi/Viem to securely deposit funds into the `TradingVault` and allocate specific amounts to individual trading bots.
 - **Live PnL Tracking:** The dashboard aggregates open and closed positions directly from the blockchain to calculate and display real-time PnL.
 
-### 2. Retro Cyberpunk Interface
-- **Immersive Design:** A cohesive 16-bit pixel aesthetic utilizing custom `image-rendering: pixelated` assets, CRT scanlines, and a dynamic background matrix.
-- **Dynamic Charting:** Real-time, responsive sparkline charts tracking live crypto data (BTC, ETH, SOL, MNT).
+### 2. Dynamic Charting
+- Real-time, responsive sparkline charts tracking live crypto data (BTC, ETH, SOL, MNT).
 
 ### 3. Telegram Alert System
 - Link your Web3 wallet to our Telegram service (`/link <address>`) to receive instant push notifications whenever a bot executes a trade or your PnL updates.
 
 <br/>
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 - **Frontend:** React, TypeScript, Vite, TailwindCSS, Framer Motion, Recharts.
 - **Web3:** Wagmi, Viem, injected MetaMask/Browser wallets.
@@ -52,7 +51,7 @@ The application is composed of three main architectural pillars:
 
 <br/>
 
-## 🧠 Development Journey & Challenges
+## Development Journey & Challenges
 
 Building a decentralized trading dashboard presented severe technical challenges, pushing us far beyond standard Web3 integrations:
 
@@ -70,7 +69,7 @@ Building a decentralized trading dashboard presented severe technical challenges
 
 <br/>
 
-## 🔗 Deployed Contracts
+## Deployed Contracts
 
 If you need to interact with the contracts directly or add them to your environment, here are the deployed addresses on **Mantle Sepolia**:
 
@@ -79,7 +78,7 @@ If you need to interact with the contracts directly or add them to your environm
 
 <br/>
 
-## 📜 Getting Started
+## Getting Started
 
 1. **Install Dependencies:**
    ```bash
