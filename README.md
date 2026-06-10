@@ -2,62 +2,73 @@
 
 <img width="2606" height="1336" alt="header" src="https://github.com/user-attachments/assets/725cabc6-4d94-4b1d-8dff-a75f39b9607f" />
 
-BODBOT is a comprehensive decentralized application (dApp) that bridges the gap between AI-driven algorithmic trading and decentralized finance (DeFi) on the Mantle Network. BODBOT allows users to allocate capital (mUSDC) to autonomous trading bots (strategies) entirely onchain.
+BODBOT is a comprehensive decentralized application (dApp) that bridges the gap between AI-driven algorithmic trading and decentralized finance (DeFi) on the Mantle Network. BODBOT allows users to allocate capital (mUSDC) to autonomous trading bots (strategies) entirely on-chain.
 
-## Overview
+<br/>
 
-The platform simulates a professional algorithmic trading desk wrapped in a gamified, retro UI. Users can connect their Web3 wallets, mint testnet collateral, and deploy capital across a fleet of specialized AI trading agents (e.g., "Finn" for Intraday Momentum, or other agents for Reversal/Breakout strategies).
+## 🎯 The Vision (Problem & Solution)
+
+### The Problem
+Retail traders are consistently outperformed in the cryptocurrency markets by institutional algorithmic trading firms. Why? Because retail traders rely on emotion, sleep, and manual execution, whereas institutions rely on autonomous, logic-driven systems executing thousands of trades per second. Current DeFi platforms still force users to manually stare at charts, execute trades, and manage their own risk.
+
+### The Solution
+BODBOT levels the playing field by decentralizing algorithmic trading. Instead of trading manually, users become **capital allocators**. You deposit funds into an on-chain vault and allocate your capital across a fleet of specialized, autonomous AI trading agents (e.g., Momentum scouts, Reversal hunters). The agents execute high-frequency strategies 24/7 on the Mantle Network, while you track your yields from a gamified, 16-bit cybernetic command center.
+
+<br/>
+
+## 🌟 Overview
+
+The platform simulates a professional algorithmic trading desk wrapped in a retro UI. Users can connect their Web3 wallets, mint testnet collateral, and deploy capital across our AI trading fleet.
 
 The application is composed of three main architectural pillars:
-1. **Frontend:** A React/Vite application heavily customized with a pixel-art design system, dynamic HTML5 canvas particle effects, and live Recharts data visualizations.
-2. **Smart Contracts:** Solidity-based `TradingVault` contracts deployed on the **Mantle Sepolia Testnet**, handling user deposits, bot allocations, and mock USDC (mUSDC) minting.
+1. **Frontend:** A React/Vite application customized with a pixel-art design system and live Recharts data visualizations.
+2. **Smart Contracts:** Solidity-based `TradingVault` contracts deployed on the **Mantle Sepolia Testnet**, handling user deposits, bot allocations, and mock USDC (mUSDC) minting safely.
 3. **Backend / Notifications:** A Python backend service powering a Telegram bot (`@OD_track_bot`) that links to user wallet addresses and pushes real-time trading alerts.
+
+<br/>
 
 ## 🚀 Key Features & Use Cases
 
-### 1. Retro Cyberpunk Interface
-- **Immersive Design:** Replaced standard modern "glassmorphism" with a cohesive 16-bit pixel aesthetic. Features include custom `image-rendering: pixelated` assets, CRT scanlines, and a relaxing, scattered background particle matrix.
-- **Dynamic Charting:** Real-time, responsive sparkline charts and matrix grids that track live crypto data (BTC, ETH, SOL, MNT), dynamically scaling to reveal micro-fluctuations in asset prices.
+### 1. On-Chain Trading Vaults
+- **Faucet Integration:** Users can mint 10,000 mUSDC directly from the dashboard, guarded by a smart cooldown system to prevent abuse.
+- **Capital Allocation:** Direct integration with Wagmi/Viem to securely deposit funds into the `TradingVault` and allocate specific amounts to individual trading bots.
+- **Live PnL Tracking:** The dashboard aggregates open and closed positions directly from the blockchain to calculate and display real-time PnL.
 
-### 2. On-Chain Trading Vaults
-- **Faucet Integration:** Users can mint 10,000 mUSDC directly from the dashboard, guarded by a 24-hour smart cooldown system.
-- **Capital Allocation:** Direct integration with Wagmi/Viem to deposit funds into the `TradingVault` and allocate specific amounts to individual trading bots.
-- **Live PnL Tracking:** The dashboard calculates and displays open PnL based on simulated algorithmic trades indexed against the user's allocated collateral.
+### 2. Retro Cyberpunk Interface
+- **Immersive Design:** A cohesive 16-bit pixel aesthetic utilizing custom `image-rendering: pixelated` assets, CRT scanlines, and a dynamic background matrix.
+- **Dynamic Charting:** Real-time, responsive sparkline charts tracking live crypto data (BTC, ETH, SOL, MNT).
 
 ### 3. Telegram Alert System
-- Users can bind their Web3 wallet address to the BODBOT Telegram service using a simple `/link <address>` command, enabling instant push notifications for trade executions, PnL updates, and liquidations.
+- Link your Web3 wallet to our Telegram service (`/link <address>`) to receive instant push notifications whenever a bot executes a trade or your PnL updates.
+
+<br/>
 
 ## 🛠️ Technology Stack
 
-- **Frontend:** React, TypeScript, Vite, TailwindCSS (for utility layout), Framer Motion, Recharts.
+- **Frontend:** React, TypeScript, Vite, TailwindCSS, Framer Motion, Recharts.
 - **Web3:** Wagmi, Viem, injected MetaMask/Browser wallets.
 - **Smart Contracts:** Solidity, Hardhat/Foundry, deployed on Mantle Sepolia.
-- **Backend:** Python (FastAPI/Aiogram for Telegram services).
+- **Backend:** Python (FastAPI/Aiogram) deployed on Railway for persistent 24/7 execution.
+
+<br/>
 
 ## 🧠 Development Journey & Challenges
 
-Building BODBOT presented several unique technical and design challenges:
+Building a decentralized trading dashboard presented severe technical challenges, pushing us far beyond standard Web3 integrations:
 
-### 1. Perfecting the Retro Aesthetic
-Transitioning the UI from a modern, blurred "glassmorphism" look to a strict 16-bit style required overhauling the entire CSS foundation. 
-- **Challenge:** Ensuring data-heavy tables and charts remained highly legible while using the blocky `'Press Start 2P'` font.
-- **Solution:** Implementing aggressive, clamped typography scaling, abandoning `border-radius`, and utilizing complex, hard-edged `box-shadow` layering to simulate 3D pixel buttons (like the `danger-button` for withdrawals).
+### 1. The RPC Rate-Limit Bottleneck (State Synchronization)
+- **Challenge:** To display a user's comprehensive trading history, the frontend initially fired a `Promise.all` batch containing over 150 parallel `readContract` calls to the Mantle RPC on login. This aggressive fetching immediately triggered public RPC rate limits (HTTP 429), resulting in silent failures where the smart contract fetcher swallowed the errors.
+- **Solution:** This caused a critical UI glitch where user stats would temporarily wipe to zero. We resolved this by re-architecting the data fetcher. We reduced the payload to the 50 most recent trades for instant UI hydration, implemented exponential backoff logic inside the `readContractWithRetry` wrapper, and explicitly threw critical errors to prevent the frontend from caching empty states during transient network failures.
 
-### 2. Charting Micro-Fluctuations
-- **Challenge:** Creating the "Live Market Matrix" sparklines resulted in "flatline" charts because Recharts defaults to scaling line charts from `$0` to the absolute maximum price. A `$20` fluctuation on a `$63,000` Bitcoin chart is invisible on that scale.
-- **Solution:** Engineered a hidden `YAxis` bound dynamically to `['dataMin', 'dataMax']`, tightly cropping the chart bounds to the exact live data limits, instantly bringing the simulated market movements to life.
+### 2. Viem Error Handling & UX
+- **Challenge:** When users interact with smart contracts, wallets like MetaMask often return massive, unreadable stack traces (e.g., `USER REJECTED THE REQUEST. REQUEST ARGUMENTS: FROM: 0x... DATA: 0x...`). Displaying these raw errors ruins the premium feel of the platform.
+- **Solution:** We engineered a custom parsing layer (`formatError`) in the frontend that intercepts Viem execution errors. It parses the stack trace to detect signature denials or contract reverts, translating them into clean, human-readable notifications (e.g., *"Transaction rejected by user"*), maintaining the immersive retro experience.
 
-### 3. React State & Animation Loops
-- **Challenge:** Implementing the "POWERED BY AI." typewriter effect originally caused stale closures and infinite re-render loops due to recursive `setTimeout` calls trapping outdated state variables inside `useEffect`.
-- **Solution:** Refactored the typing animation to use a strict, dependency-driven state machine that cleanly mounts/unmounts timers based on string length and deletion status.
+### 3. Data Visualization Micro-Fluctuations
+- **Challenge:** Creating the "Live Market Matrix" resulted in "flatline" charts. Recharts defaults to scaling line charts from `$0` to the absolute maximum price, meaning a `$50` micro-fluctuation on a `$63,000` Bitcoin chart is visually non-existent.
+- **Solution:** We engineered a hidden dynamic `YAxis` bound specifically to the `['dataMin', 'dataMax']` of the rolling data window. This tightly cropped the chart bounds to the exact live data limits in real-time, instantly bringing the simulated market movements to life on the dashboard.
 
-### 4. Canvas Particle Physics
-- **Challenge:** The initial background canvas effect used a heavy, mouse-tracking swirling algorithm that was visually distracting and computationally expensive.
-- **Solution:** Rewrote the physics engine to a lightweight, scattered drift model where pixels move linearly and smoothly wrap around screen edges, fitting the chill, atmospheric space vibe perfectly.
-
-### 5. Git / Environment Management
-- **Challenge:** During intense backend development, a `dev.log` file silently ballooned to over 117MB, breaking GitHub's push limits and failing Vercel deployments.
-- **Solution:** Executed an emergency cache purge (`git rm --cached`) and strict `.gitignore` enforcement to salvage the repository state and restore deployment pipelines.
+<br/>
 
 ## 🔗 Deployed Contracts
 
@@ -65,6 +76,8 @@ If you need to interact with the contracts directly or add them to your environm
 
 - **Mock USDC (mUSDC):** `0x84bF6BA683178B3Fa97882bB00bC65d219aB38b7`
 - **Trading Vault:** `0x35143Da0E758d1F1dc688c13Ef5471B1f26449c8`
+
+<br/>
 
 ## 📜 Getting Started
 
