@@ -6,7 +6,7 @@ BODBOT is a comprehensive decentralized application (dApp) that bridges the gap 
 
 <br/>
 
-## The Vision (Problem & Solution)
+## The Vision
 
 ### The Problem
 Retail traders are consistently outperformed in the cryptocurrency markets by institutional algorithmic trading firms. Why? Because retail traders rely on emotion, sleep, and manual execution, whereas institutions rely on autonomous, logic-driven systems executing thousands of trades per second. Current DeFi platforms still force users to manually stare at charts, execute trades, and manage their own risk.
@@ -27,7 +27,7 @@ The application is composed of three main architectural pillars:
 
 <br/>
 
-## 🚀 Key Features & Use Cases
+## Key Features & Use Cases
 
 ### 1. Onchain Trading Vaults
 - **Faucet Integration:** Users can mint 10,000 mUSDC directly from the dashboard, guarded by a smart cooldown system to prevent abuse.
