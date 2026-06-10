@@ -18,6 +18,16 @@ export function Dashboard() {
       : "Demo mode active. Add contract addresses to .env after deployment for live vault transactions.",
   );
 
+  const formatError = (error: unknown, defaultMsg: string) => {
+    if (error instanceof Error) {
+      if (error.message.includes("User rejected") || error.message.includes("User denied")) {
+        return "Transaction rejected by user.";
+      }
+      return error.message.split('\n')[0];
+    }
+    return defaultMsg;
+  };
+
   async function activateBot(botId: number, amount: number) {
     if (amount <= 0) return;
     if (address && contractsConfigured()) {
@@ -28,7 +38,7 @@ export function Dashboard() {
         setStatus(`Allocated ${amount.toLocaleString()} mUSDC to ${botName} on-chain.`);
         await refresh(); // re-fetch live data after on-chain action
       } catch (error) {
-        setStatus(error instanceof Error ? error.message : "On-chain allocation failed.");
+        setStatus(formatError(error, "On-chain allocation failed."));
         return;
       }
     } else if (!address) {
@@ -48,7 +58,7 @@ export function Dashboard() {
         setStatus(`Successfully withdrew ${amount.toLocaleString()} mUSDC from ${botName}.`);
         await refresh();
       } catch (error) {
-        setStatus(error instanceof Error ? error.message : "On-chain withdrawal failed.");
+        setStatus(formatError(error, "On-chain withdrawal failed."));
       }
     }
   }
@@ -88,7 +98,7 @@ export function Dashboard() {
       setStatus("Minted 10,000 mUSDC to your wallet.");
       await refresh(); // re-fetch balances after minting
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Mint transaction failed.");
+      setStatus(formatError(error, "Mint transaction failed."));
     }
   }
 
