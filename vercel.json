@@ -1,4 +1,10 @@
 {
+  "experimentalServices": {
+    "frontend": {
+      "routePrefix": "/",
+      "framework": "vite"
+    }
+  },
   "rewrites": [
     {
       "source": "/(.*)",
