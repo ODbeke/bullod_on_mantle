@@ -170,6 +170,7 @@ class BotEngine:
             take_profit=signal.price * tp_multiplier,
             stop_loss=signal.price * sl_multiplier,
             leverage=leverage,
+            entry_reason=signal.reason,
         )
         self.positions[key] = position
         try:
@@ -222,7 +223,8 @@ class BotEngine:
                     f"🤖 Bot {position.bot_id} ({position.bot_name}) | {position.symbol}\n\n"
                     f"{emoji} {outcome} at ${price:,.2f}\n"
                     f"💰 PnL: {pnl:+.2f} USDC\n"
-                    f"⏱️ Duration: {duration_str}"
+                    f"⏱️ Duration: {duration_str}\n"
+                    f"📝 Reason: {position.entry_reason}"
                 )
                 await self.notifier.notify(position.user, message)
             except Exception:

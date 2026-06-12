@@ -46,6 +46,7 @@ class Position:
     take_profit: float
     stop_loss: float
     leverage: float = 10.0
+    entry_reason: str = "On-chain Sync"
 
     def pnl(self, price: float) -> float:
         move = (price - self.entry_price) / self.entry_price
