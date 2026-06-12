@@ -123,7 +123,19 @@ class TelegramNotifier:
         msg = update.get("message") or {}
         text: str = msg.get("text", "")
         chat_id: int | None = msg.get("chat", {}).get("id")
-        if not chat_id or not text.startswith("/link"):
+        if not chat_id or not text:
+            return
+
+        if text.startswith("/start"):
+            welcome = (
+                "BODBOT tracker 🤖\n\n"
+                "Link your wallet to receive real-time alerts for all your BODBOT agents execution.\n\n"
+                "To activate type: /link 0xYourWallet"
+            )
+            await self.notify_chat(chat_id, welcome)
+            return
+
+        if not text.startswith("/link"):
             return
 
         parts = text.strip().split()
