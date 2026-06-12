@@ -266,4 +266,4 @@ class ChainRecorder:
 
 
 def abi_path() -> Path:
-    return Path(__file__).resolve().parents[3] / "contracts" / "artifacts" / "contracts" / "contracts" / "TradingVault.sol" / "TradingVault.json"
+    return Path(__file__).resolve().parent.parent / "TradingVault.json"
