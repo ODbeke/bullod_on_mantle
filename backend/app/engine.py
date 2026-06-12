@@ -31,8 +31,8 @@ class BotEngine:
         self.settings = get_settings()
         self.market = CryptoCompareStream()
         self.chain = ChainRecorder()
-        self.notifier = TelegramNotifier(self.settings.telegram_bot_token)
         self.repository = TradeRepository()
+        self.notifier = TelegramNotifier(self.settings.telegram_bot_token, repository=self.repository)
         # positions keyed by (user, bot_id, symbol) for multi-user support
         self.positions: dict[tuple[str, int, str], Position] = {}
         # tracks last signal time per (bot_id, symbol) for cooldown enforcement
@@ -201,8 +201,12 @@ class BotEngine:
             try:
                 await self.chain.close_trade(position.trade_id, price, pnl)
             except Exception as exc:
-                logger.error("On-chain close failed for trade #%d: %s", position.trade_id, exc)
-                continue # Skip deleting the position from memory so it can retry later
+                err_str = str(exc)
+                if "0xb9da156f" in err_str or "TradeAlreadyClosed" in err_str:
+                    logger.info("Trade #%d was already closed on-chain. Cleaning up local state.", position.trade_id)
+                else:
+                    logger.error("On-chain close failed for trade #%d: %s", position.trade_id, exc)
+                    continue # Skip deleting the position from memory so it can retry later
             try:
                 await self.repository.close_trade(position.trade_id, price, pnl)
             except Exception:

@@ -20,10 +20,11 @@ import json
 from pathlib import Path
 
 class TelegramNotifier:
-    def __init__(self, token: str, storage_file: str = "telegram_links.json") -> None:
+    def __init__(self, token: str, storage_file: str = "telegram_links.json", repository = None) -> None:
         self.token = token
         self.storage_file = Path(storage_file)
-        self.wallet_to_chat: dict[str, int] = self._load_links()
+        self.repository = repository
+        self.wallet_to_chat: dict[str, int] = {}
         self._session: aiohttp.ClientSession | None = None
         self._poll_task: asyncio.Task | None = None
 
@@ -50,6 +51,15 @@ class TelegramNotifier:
     async def start(self) -> None:
         if not self.token:
             return
+        
+        self.wallet_to_chat = self._load_links()
+        
+        if self.repository:
+            db_links = await self.repository.get_wallet_links()
+            if db_links:
+                self.wallet_to_chat.update(db_links)
+                self._save_links()
+
         self._session = aiohttp.ClientSession()
         # Start the lightweight /link command listener in the background.
         self._poll_task = asyncio.create_task(self._listen_for_commands())
@@ -150,6 +160,11 @@ class TelegramNotifier:
 
         self.wallet_to_chat[wallet] = chat_id
         self._save_links()
+        if self.repository:
+            try:
+                await self.repository.save_wallet_link(wallet, chat_id)
+            except Exception as e:
+                logger.error("Failed to save wallet link to DB during update: %s", e)
         await self.notify_chat(chat_id, f"✅ Linked {wallet}. Trade alerts are now active!")
         logger.info("Wallet linked: %s → chat %d", wallet[:10], chat_id)
 
