@@ -177,10 +177,13 @@ class BotEngine:
         except Exception:
             pass
         try:
-            await self.notifier.notify(
-                position.user,
-                f"Bot {position.bot_id} ({position.bot_name}) | {position.symbol}\nTrade opened {position.side.upper()} at ${position.entry_price:,.2f}\nReason: {signal.reason}",
+            side_emoji = "📈" if position.side == Side.LONG else "📉"
+            message = (
+                f"🤖 Bot {position.bot_id} ({position.bot_name}) | {position.symbol}\n\n"
+                f"{side_emoji} Trade Opened: {position.side.upper()} at ${position.entry_price:,.2f}\n"
+                f"📝 Reason: {signal.reason}"
             )
+            await self.notifier.notify(position.user, message)
         except Exception:
             pass
 
@@ -206,11 +209,18 @@ class BotEngine:
                 pass
             del self.positions[key]
             outcome = "Take Profit Hit" if pnl >= 0 else "Stop Loss Hit"
+            emoji = "🟢" if pnl >= 0 else "🔴"
+            hours = position.age_seconds // 3600
+            minutes = (position.age_seconds % 3600) // 60
+            duration_str = f"{hours}h{minutes}m"
             try:
-                await self.notifier.notify(
-                    position.user,
-                    f"Bot {position.bot_id} ({position.bot_name}) | {position.symbol}\n{outcome} at ${price:,.2f}\nPnL: {pnl:+.2f} USDC | Duration: {position.age_seconds // 60}m",
+                message = (
+                    f"🤖 Bot {position.bot_id} ({position.bot_name}) | {position.symbol}\n\n"
+                    f"{emoji} {outcome} at ${price:,.2f}\n"
+                    f"💰 PnL: {pnl:+.2f} USDC\n"
+                    f"⏱️ Duration: {duration_str}"
                 )
+                await self.notifier.notify(position.user, message)
             except Exception:
                 pass
 
