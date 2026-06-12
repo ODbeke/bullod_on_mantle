@@ -44,6 +44,24 @@ The application is composed of three main architectural pillars:
 
 <br/>
 
+## 🤖 The AI Trading Fleet (Our Agents)
+BODBOT doesn't just place random market orders; it deploys specialized algorithmic agents, each engineered with distinct risk profiles, time horizons, and execution parameters. Retail traders panic, but our code doesn't.
+
+*   **"Finn" – The Intraday Momentum Scout**
+    *   **Strategy:** Volume Breakouts & High-Frequency Momentum.
+    *   **Execution:** Finn refuses to chase green candles. This agent patiently stalks structural volume anomalies and tight consolidation patterns. It trades exclusively during high-volatility market overlaps (e.g., London/New York opens), holding positions for minutes to hours to capture explosive micro-trends before locking in yields.
+*   **"Puff" – The Mean Reversion Sniper**
+    *   **Strategy:** Deep Value & Statistical Arbitrage.
+    *   **Execution:** Puff thrives in the blood. This agent will sit entirely idle in cash for days, aggressively scanning for flash crashes, liquidation cascades, or extreme RSI divergences. When the market overreacts and retail panic sells, Puff executes clinical limit orders to catch the mathematical snap-back. 
+*   **"Cipher" – The Macro Trend Rider**
+    *   **Strategy:** Moving Average Convergence & Trailing Stops.
+    *   **Execution:** Built for the patient capital allocator. Cipher ignores 15-minute chart noise and focuses purely on macro momentum shifts. Once an algorithmic trendline is confirmed, it deploys capital with aggressive algorithmic trailing stops—riding the wave to the absolute top while strictly protecting downside risk.
+
+### 🛡️ Smart Capital Preservation (Bonus Hackathon Feature)
+To protect user allocations, our agents don't just execute offensive strategies; they play defense. The bots operate with **Zero-Emotion Execution** and simulate hard-coded drawdown limits. If market volatility index (VIX) metrics exceed safety parameters, the agents are programmed to sit on their hands, refusing to execute sub-optimal entries until market structure normalizes.
+
+<br/>
+
 ## Technology Stack
 
 - **Frontend:** React, TypeScript, Vite, TailwindCSS, Framer Motion, Recharts.
