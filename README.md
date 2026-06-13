@@ -50,12 +50,18 @@ BODBOT doesn't just place random market orders; it deploys specialized algorithm
 *   **Finn – The Intraday Momentum Scout**
     *   **Strategy:** Volume Breakouts & High-Frequency Momentum.
     *   **Execution:** Finn refuses to chase green candles. This agent patiently stalks structural volume anomalies and tight consolidation patterns. It trades exclusively during high volatility market overlaps (e.g., London/New York opens), holding positions for minutes to hours to capture explosive micro-trends before locking in yields.
-*   **Puff – The Mean Reversion Sniper**
-    *   **Strategy:** Deep Value & Statistical Arbitrage.
-    *   **Execution:** This agent will sit entirely idle in cash for days, aggressively scanning for flash crashes, liquidation cascades, or extreme RSI divergences. When the market overreacts and retail panic sells, Puff executes clinical limit orders to catch the mathematical snap-back. 
-*   **Cipher – The Macro Trend Rider**
-    *   **Strategy:** Moving Average Convergence & Trailing Stops.
-    *   **Execution:** Built for the patient capital allocator. Cipher ignores 15-minute chart movement and focuses purely on macro momentum shifts. Once an algorithmic trendline is confirmed, it deploys capital with aggressive algorithmic trailing stops—riding the wave to the absolute top while strictly protecting downside risk.
+*   **Tycoon – The Macro Trend Rider**
+    *   **Strategy:** Exponential Moving Average & Trend Follower.
+    *   **Execution:** Tycoon ignores 15-minute noise, focusing entirely on macro momentum shifts. Once an EMA crossover is confirmed on-chain with ADX strength metrics, it deploys capital and implements trailing limits to ride high-momentum swings while protecting the downside.
+*   **Puff – The Volatility Breakout Hunter**
+    *   **Strategy:** Bollinger Band Squeezes & ATR Breakouts.
+    *   **Execution:** Puff scans for market contraction periods where volatility drops to extreme lows. Once a breakout is signaled via an ATR expansion, Puff enters the trend early to catch explosive directional moves.
+*   **Gemma – The Range Bound Scalper**
+    *   **Strategy:** Channel Oscillations & RSI Mean Reversion.
+    *   **Execution:** Gemma excels in sideways markets. It maps support and resistance bands, executing clean buy-low/sell-high orders when the RSI indicators signal overbought or oversold exhaustion at range extremes.
+*   **Josh – The Candlestick Reversal Sniper**
+    *   **Strategy:** Exhaustion Pivot & Rejection Patterns.
+    *   **Execution:** Josh operates as a counter-trend sniper, looking for market tops and capitulation bottoms. It targets extreme pivot point deviations and acts on candlestick rejection cues (such as hammer or engulfing candles) to capture reversals early.
 
 ### Smart Capital Preservation
 To protect user allocations, our agents don't just execute offensive strategies; they play defense. The bots operate with **Zero-Emotion Execution** and simulate hard-coded drawdown limits. If market volatility index (VIX) metrics exceed safety parameters, the agents are programmed to sit on their hands, refusing to execute sub-optimal entries until market structure normalizes.
