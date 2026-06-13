@@ -33,8 +33,8 @@ class BotEngine:
         self.chain = ChainRecorder()
         self.repository = TradeRepository()
         self.notifier = TelegramNotifier(self.settings.telegram_bot_token, repository=self.repository)
-        # positions keyed by (user, bot_id, symbol) for multi-user support
-        self.positions: dict[tuple[str, int, str], Position] = {}
+        # positions keyed by trade_id
+        self.positions: dict[int, Position] = {}
         # tracks last signal time per (bot_id, symbol) for cooldown enforcement
         self._last_signal_time: dict[tuple[int, str], float] = {}
         self._last_user_discovery: float = 0.0
@@ -134,11 +134,9 @@ class BotEngine:
 
     async def _handle_signal(self, user: str, signal: Signal) -> None:
         user_lower = user.lower()
-        # Enforce strict 1-position-per-pair rule across ALL bots for this user
-        if any(pos.user == user_lower and pos.symbol == signal.symbol for pos in self.positions.values()):
+        # Enforce strict 1-position-per-pair rule PER BOT for this user
+        if any(pos.user == user_lower and pos.bot_id == signal.bot_id and pos.symbol == signal.symbol for pos in self.positions.values()):
             return
-
-        key = (user_lower, signal.bot_id, signal.symbol)
 
         allocation = await self.chain.bot_allocation(user, signal.bot_id)
         collateral = max(25.0, allocation / 10**6 * signal.collateral_fraction)
@@ -172,7 +170,7 @@ class BotEngine:
             leverage=leverage,
             entry_reason=signal.reason,
         )
-        self.positions[key] = position
+        self.positions[trade_id] = position
         try:
             await self.repository.save_open_trade(position)
         except Exception:

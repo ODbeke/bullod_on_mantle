@@ -165,7 +165,7 @@ class ChainRecorder:
                 active.append(user)
         return active
 
-    async def sync_open_positions(self) -> dict[tuple[str, int, str], Position]:
+    async def sync_open_positions(self) -> dict[int, Position]:
         """Fetch all currently open positions from the smart contract."""
         positions = {}
         if not self.contract:
@@ -214,8 +214,7 @@ class ChainRecorder:
                                 take_profit=entry_price * tp_multiplier,
                                 stop_loss=entry_price * sl_multiplier,
                             )
-                            key = (user.lower(), t[2], symbol)
-                            positions[key] = pos
+                            positions[tid] = pos
             except Exception as e:
                 logger.warning("Failed to sync positions for %s: %s", user, e)
                 
