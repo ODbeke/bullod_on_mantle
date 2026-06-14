@@ -45,9 +45,9 @@ graph TD
 
 <br/>
 
-## Product Showcase (Live Previews)
+## BODBOT Showcase (Live Previews)
 
-Here is a glimpse of the 16-bit retro cyberpunk landing page, dashboard interface, and real-time Telegram alerts:
+Here is a glimpse of the landing page, dashboard interface, and real-time Telegram alerts:
 
 <p align="center">
   <img src="docs/landing.png" width="49%" alt="Landing Page" />
