@@ -47,12 +47,33 @@ graph TD
 
 ## Product Showcase (Live Previews)
 
-Here is a glimpse of the 16-bit retro cyberpunk style dashboard interface and trading setups:
+Here is a look at the 16-bit retro cyberpunk landing page, trading dashboard, and real-time Telegram alert integrations:
 
+### 1. Landing Page
 <p align="center">
-  <img src="dist-dashboard.png" width="48%" alt="BODBOT Dashboard Interface" />
-  <img src="dist-puff-modal.png" width="48%" alt="Algorithmic Trading Bot Details Modal" />
+  <img src="docs/landing.png" width="100%" alt="BODBOT Landing Page" />
 </p>
+
+### 2. Algorithmic Trading Dashboard
+<p align="center">
+  <img src="docs/dashboard.png" width="100%" alt="BODBOT Operations Dashboard" />
+</p>
+
+### 3. Strategy Fleet & Bots
+<p align="center">
+  <img src="docs/strategy-fleet.png" width="100%" alt="BODBOT Trading Bots allocations" />
+</p>
+
+### 4. Interactive Allocation Modal
+<p align="center">
+  <img src="docs/bot-modal.png" width="100%" alt="BODBOT Capital Allocation Modal" />
+</p>
+
+### 5. Telegram Push Alerts
+<p align="center">
+  <img src="docs/telegram-alerts.jpg" width="60%" alt="BODBOT Telegram Trade Notifications" />
+</p>
+
 
 <br/>
 
