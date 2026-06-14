@@ -60,7 +60,7 @@ Here is a glimpse of the 16-bit retro cyberpunk landing page, dashboard interfac
 </p>
 
 <p align="center">
-  <img src="docs/telegram-alerts.jpg" width="38%" alt="Telegram Push Alerts" />
+  <img src="docs/telegram-alerts.jpg" width="22%" alt="Telegram Push Alerts" />
 </p>
 
 
