@@ -45,6 +45,17 @@ graph TD
 
 <br/>
 
+## Product Showcase (Live Previews)
+
+Here is a glimpse of the 16-bit retro cyberpunk style dashboard interface and trading setups:
+
+<p align="center">
+  <img src="dist-dashboard.png" width="48%" alt="BODBOT Dashboard Interface" />
+  <img src="dist-puff-modal.png" width="48%" alt="Algorithmic Trading Bot Details Modal" />
+</p>
+
+<br/>
+
 ## Key Features & Use Cases
 
 ### 1. Onchain Trading Vaults
