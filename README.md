@@ -27,6 +27,22 @@ The application is composed of three main architectural pillars:
 2. **Smart Contracts:** Solidity-based `TradingVault` contracts deployed on the **Mantle Sepolia Testnet**, handling user deposits, bot allocations, and mock USDC (mUSDC) minting safely.
 3. **Backend / Notifications:** A Python backend service powering a Telegram bot (`@OD_track_bot`) that links to user wallet addresses and pushes real-time trading alerts.
 
+### System Architecture
+
+```mermaid
+graph TD
+    User([User]) <-->|Interacts| UI[React/Vite Dashboard]
+    UI <-->|Wagmi / Viem| Vault[TradingVault Smart Contract]
+    
+    Bybit[Bybit WebSocket Stream] -->|Market Data| Engine[Python Bot Engine]
+    Engine <-->|Queries Allocations / Syncs Positions| Vault
+    Engine -->|Saves History| DB[(PostgreSQL Database)]
+    Engine -->|Triggers Transactions| Vault
+    
+    TelegramBot[Telegram Alert Bot] <-->|Link Wallet| User
+    Engine -->|Pushes Real-Time Alerts| TelegramBot
+```
+
 <br/>
 
 ## Key Features & Use Cases
